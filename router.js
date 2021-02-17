@@ -1,5 +1,6 @@
 const http = require('http');
 const fs = require('fs');
+const service = require('./service.js')
 
 module.exports = http.createServer((req,res)=>{
     const baseUrl = 'http://'+req.headers.host + '/'
@@ -37,9 +38,13 @@ module.exports = http.createServer((req,res)=>{
 
         })
     }   
-    if(requestUrl.pathname == '/api' && req,method == 'POST'){
+    if(requestUrl.pathname == '/api' && req.method == 'POST'){
         console.log('API POST LOCATION ROUTE');
-        const service = require('./service.js')
-        service.searchMetaForLocation(req,res)
+        service.searchForMetadata(req,res);
     }
+    if(requestUrl.pathname == '/metrics' && req.method == 'GET'){
+        console.log('API GET METRICS ROUTE');
+        service.getMetricsForApp(req,res);
+    }
+
 })
