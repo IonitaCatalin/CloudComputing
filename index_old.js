@@ -2,11 +2,11 @@ const http = require('http');
 const express = require('express')
 const path = require('path')
 const bodyParser = require('body-parser');
+const jsonParser = bodyParser.json()
 const app = express()
 const port = 3000
 
 app.use(express.static(__dirname + '/client'));
-app.use('/static', express.static(__dirname + '/client'));
 
 require('dotenv').config()
 
@@ -15,7 +15,11 @@ app.get('/metrics', (req, res) => {
   })
 
 app.post('/api',(req,res)=>{
+    
+})
 
+app.get('/api',(req,res)=>{
+   console.log('Service is up and running')
 })
 
 app.get('/client',(req,res)=>{
