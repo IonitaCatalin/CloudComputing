@@ -14,8 +14,18 @@ const getDataFromWeatherAPI = async function(lat,long){
       }).then(res => res.data);
 }
 
-const getDataFromSunAPI = async function(lat,long){
+const getDataFromSunAPI = async function(lat,long,date){
+    return axios({
+        method: "get",
+        url: `${process.env.SUNRISE_SUNSET}/json?lat=${lat}&lng=${long}&date=${date}`,
+      }).then(res => res.data);
+}
 
+const getDataFromTimeAPI = async function(lat,long){
+    return axios({
+        method: "get",
+        url: `${process.env.IPGEOLOCATION}?apiKey=${process.env.IPGEOLOCATION_KEY_API}&lat=${lat}&long=${long}`,
+      }).then(res => res.data);
 }
 
 const searchForMetadata = async function(req,res){
@@ -30,7 +40,7 @@ const searchForMetadata = async function(req,res){
             const suggestionOnLocations = await getDataFromMapboxAPI(result['location']);
             if(suggestionOnLocations['features'].length == 0){
 
-                const response = {status : 'failed','message': 'Location not found'}
+                const response = {status : 'failed','message': 'Location not found anywhere'}
                 res.writeHead(404,{'Content-Type':'application/json'})
                 res.write(JSON.stringify(response));
                 res.end();
@@ -40,12 +50,33 @@ const searchForMetadata = async function(req,res){
                 lat = lookupLocation['geometry']['coordinates'][1];
                 long = lookupLocation['geometry']['coordinates'][0];
                 const currentWeatherConditions = await getDataFromWeatherAPI(lat,long);
+                const temporalCoordinates = await getDataFromTimeAPI(lat,long)
                 condition = currentWeatherConditions['current']['text']
                 temperatureCelsius = currentWeatherConditions['current']['temp_c'];
                 windKph = currentWeatherConditions['current']['wind_kph'];
+                date = temporalCoordinates['date'];
+                time = temporalCoordinates['time_24'];
+                const solarPosition = await getDataFromSunAPI(lat,long,date)
+                dayLength = solarPosition['results']['day_length'];
+                
+                res.writeHead(200,{'Content-Type':'application/json'});
+                const response = {status:'success',
+                            'content':
+                                     {
+                                      'name':result['location'],
+                                      'latitude':lat,
+                                      'longitude':long,
+                                      'condition':condition,
+                                      'temperatureCelsius':temperatureCelsius,
+                                      'windKph':windKph,
+                                      'date':date,
+                                      'time':time,
+                                      'dayLength':dayLength
+                                    },
+                            'message':'Data retrieved succesfully for the given location'};
+                res.write(JSON.stringify(response));
+                res.end();
             }
-
-            
 
         }
         catch(err){
@@ -60,7 +91,7 @@ const searchForMetadata = async function(req,res){
 }
 
 const getMetricsForApp = function(req,res){
-
+    
 }
 
 module.exports = {
