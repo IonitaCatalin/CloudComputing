@@ -38,6 +38,21 @@ module.exports = http.createServer((req,res)=>{
 
         })
     }   
+    if(requestUrl.pathname == '/js/submit.js' && req.method == 'GET'){
+        console.log('Client JS ROUTE');
+        fs.readFile('./client/js/submit.js',function(err,js){
+            if(err){
+                res.writeHead(404, { 'Content-Type': 'text/javascript' });
+                res.write('File not found on the server')
+                res.end();
+            }
+
+            res.writeHeader(200,{"Content-Type":"text/javascript"});
+            res.write(js)
+            res.end()
+
+        })
+    }   
     if(requestUrl.pathname == '/api' && req.method == 'POST'){
         console.log('API POST LOCATION ROUTE');
         service.searchForMetadata(req,res);

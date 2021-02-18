@@ -51,13 +51,12 @@ const searchForMetadata = async function(req,res){
                 long = lookupLocation['geometry']['coordinates'][0];
                 const currentWeatherConditions = await getDataFromWeatherAPI(lat,long);
                 const temporalCoordinates = await getDataFromTimeAPI(lat,long)
-                condition = currentWeatherConditions['current']['text']
-                temperatureCelsius = currentWeatherConditions['current']['temp_c'];
-                windKph = currentWeatherConditions['current']['wind_kph'];
-                date = temporalCoordinates['date'];
-                time = temporalCoordinates['time_24'];
+                var temperatureCelsius = currentWeatherConditions['current']['temp_c'];
+                var windKph = currentWeatherConditions['current']['wind_kph'];
+                var date = temporalCoordinates['date'];
+                var time = temporalCoordinates['time_24'];
                 const solarPosition = await getDataFromSunAPI(lat,long,date)
-                dayLength = solarPosition['results']['day_length'];
+                var dayLength = solarPosition['results']['day_length'];
                 
                 res.writeHead(200,{'Content-Type':'application/json'});
                 const response = {status:'success',
@@ -66,7 +65,6 @@ const searchForMetadata = async function(req,res){
                                       'name':result['location'],
                                       'latitude':lat,
                                       'longitude':long,
-                                      'condition':condition,
                                       'temperatureCelsius':temperatureCelsius,
                                       'windKph':windKph,
                                       'date':date,
@@ -91,7 +89,7 @@ const searchForMetadata = async function(req,res){
 }
 
 const getMetricsForApp = function(req,res){
-    
+
 }
 
 module.exports = {
