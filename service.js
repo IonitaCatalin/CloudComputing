@@ -1,4 +1,5 @@
 const axios = require('axios');
+const {Log,Response} = require('./models')
 require('dotenv').config()
 
 const getDataFromMapboxAPI = async function(location){
@@ -46,9 +47,9 @@ const searchForMetadata = async function(req,res){
                 res.end();
             }
             else{
-                lookupLocation = suggestionOnLocations['features'][0];
-                lat = lookupLocation['geometry']['coordinates'][1];
-                long = lookupLocation['geometry']['coordinates'][0];
+                var lookupLocation = suggestionOnLocations['features'][0];
+                var lat = lookupLocation['geometry']['coordinates'][1];
+                var long = lookupLocation['geometry']['coordinates'][0];
                 const currentWeatherConditions = await getDataFromWeatherAPI(lat,long);
                 const temporalCoordinates = await getDataFromTimeAPI(lat,long)
                 var temperatureCelsius = currentWeatherConditions['current']['temp_c'];
@@ -78,18 +79,49 @@ const searchForMetadata = async function(req,res){
 
         }
         catch(err){
-            console.log(err);
             const response = {status : 'failed','message': 'Internat server problem'}
             res.writeHead(500,{'Content-Type':'application/json'})
             res.write(JSON.stringify(response));
             res.end();
         }
-        
     });
+
 }
 
-const getMetricsForApp = function(req,res){
+const getMetricsForApp = async function(req,res){
+    try{
+        const dbLogs = await Log.find().populate("response")
+        var sumOfLatencies = 0;
+        var biggestLatency = 0;
+        var getRequests = 0;
+        var postRequests = 0;
+        dbLogs.forEach(element=>{
+            if(element['latency']>biggestLatency)
+                biggestLatency = element['latency'];
+            if(element['method'] == 'GET')
+                getRequests+=1;
+            if(element['method'] == 'POST')
+                postRequests+=1;
+            sumOfLatencies += element['latency'];
+        });
+        res.writeHead(200,{'Content-Type':'application/json'});
+        res.write(JSON.stringify({
+                averageLatency:sumOfLatencies/dbLogs.length,
+                biggestLatency:biggestLatency,
+                getRequestsCount:getRequests,
+                postRequestsCount:postRequests,
+                lastRequest:dbLogs[dbLogs.length-1]
+        }));
+        res.end();
 
+
+    }catch(err){
+            console.log(err);
+            const responseJSON = JSON.stringify({status : 'failed','message': 'Internat server problem'});
+            res.writeHead(500,{'Content-Type':'application/json'})
+            res.write(responseJSON);
+            res.end();
+    }
 }
 
 module.exports = {
