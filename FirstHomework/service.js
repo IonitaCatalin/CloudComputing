@@ -70,7 +70,7 @@ const searchForMetadata = async function(req,res){
                                       'windKph':windKph,
                                       'date':date,
                                       'time':time,
-                                      'dayLength':dayLength
+                                      'dayLength':dayLength,
                                     },
                             'message':'Data retrieved succesfully for the given location'};
                 res.write(JSON.stringify(response));
@@ -85,7 +85,6 @@ const searchForMetadata = async function(req,res){
             res.end();
         }
     });
-
 }
 
 const getMetricsForApp = async function(req,res){

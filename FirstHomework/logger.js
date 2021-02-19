@@ -4,23 +4,17 @@ require('dotenv').config()
 
 const logOnRequest = async function(req,res){
     var requestBodyData = '';
-    var responseBodyData='';
     const requestReceivedAt = Date.now();
 
     req.on('data', chunk => {
         requestBodyData += chunk;
     })
-    
-    res.on("data", function(chunk) {
-        console.log("BODY: " + chunk);
-      });
+
 
     res.on('finish',async ()=>{
         const { httpVersion, method, socket, url } = req;
         const { remoteAddress, remoteFamily } = socket;
         const { statusCode, statusMessage } =res;
-        const headers = res.getHeaders();
-
         const requestLog = JSON.stringify({
               timestamp: Date.now(),
               httpVersion,
