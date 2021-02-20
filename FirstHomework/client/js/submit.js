@@ -101,6 +101,56 @@ function getMetricsFromAPI(){
 
     })
 }
+function getMonitorFromAPI(){
+    fetch(domain + ':' + port + '/monitor',{
+        headers:{
+            'Accept':'application/json',
+            'Content-Type': 'application/json'
+        },
+        method:"GET",
+    }).then(response => {
+        if(response.ok){
+            return response.json();
+        }else{
+            throw new Error(response.status);
+        }
+    }).then((responseJson) =>{
+        var mapBoxStatus = document.createElement('p');
+        var mapBoxLatency = document.createElement('p');
+        var openWeatherStatus = document.createElement('p');
+        var openWeatherLatency = document.createElement('p');
+        var ipgeolocationStatus = document.createElement('p');
+        var ipgeolocationLatency = document.createElement('p');
+        var sunriseStatus = document.createElement('p');
+        var sunriseLatency = document.createElement('p');
+
+
+        mapBoxStatus.textContent = 'MapBoxStatus: ' + responseJson['mapBoxRunning'];
+        mapBoxLatency.textContent = 'MapBoxLatency: ' + responseJson['mapBoxLatency'];
+        openWeatherStatus.textContent = 'OpenWeatherRunning: ' + responseJson['openWeatherRunning'];
+        openWeatherLatency.textContent = 'OpenWeatherLatency: ' + responseJson['openWeatherLatency'];
+        ipgeolocationStatus.textContent = 'IPGeolocationRunning: ' + responseJson['ipgeolocationRunning'];
+        ipgeolocationLatency.textContent = 'IPGeolocationLatency: ' + responseJson['ipgeolocationLatency'];
+        sunriseStatus.textContent = 'SunriseSunsetRunning: ' + responseJson['sunriseSunsetRunning'];
+        sunriseLatency.textContent = 'SunriseSunsetLatency: ' + responseJson['sunriseSunsetLatency'];
+        [mapBoxStatus,mapBoxLatency,openWeatherStatus,openWeatherLatency,ipgeolocationStatus,ipgeolocationLatency,sunriseStatus,sunriseLatency]
+          .forEach(async function(e){
+            e.className = 'data';
+            e.style = "color:orange;margin-bottom:0px;font-weight:bold;"
+          })
+        contentPanel.append(mapBoxStatus,mapBoxLatency,openWeatherStatus,openWeatherLatency,ipgeolocationStatus,ipgeolocationLatency);
+        contentPanel.append(sunriseLatency,sunriseStatus);
+
+    }).catch((error) => {
+        console.log(error)
+        var errorText = document.createElement('p');
+        errorText.textContent = 'Something went wrong fetching monitor data errorcode:'+ error +"!";
+        errorText.style = "color:red";
+        errorText.className = "data"
+        contentPanel.append(errorText);
+
+    })
+}
 
 searchButton.onclick = function(){
     lookupLocation = searchBar.value;
@@ -119,8 +169,12 @@ metricsButton.onclick = function(){
 
 benchmarkButton.onclick = function(){
     console.log('Click');
+    
 }
 
 checkButton.onclick = function(){
-    console.log('Click');
+    [].forEach.call(document.querySelectorAll('.data'),function(e){
+        e.parentNode.removeChild(e);
+      });
+      getMonitorFromAPI();
 }

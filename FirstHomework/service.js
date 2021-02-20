@@ -83,7 +83,6 @@ const searchForMetadata = async function(req,res){
 
         }
         catch(err){
-            console.log(err);
             const response = JSON.stringify({status : 'failed','message': 'Internat server problem'})
             res.writeHead(500,{'Content-Type':'application/json'})
             res.write(response);
@@ -170,14 +169,14 @@ const getAPIServicesStatus = async function(res)
         }
         const response = JSON.stringify(
                         {
-                        mapboxRunning:mapBoxUp,
-                        mapBoxLatency:mapBoxLatency,
-                        openWeatherRunning:openWeatherUp,
-                        openWeatherLatency:openWeatherLatency,
-                        ipgeolocationRunning:ipgeolocationUp,
-                        ipgeolocationLatency:ipgeolocationLatency,
-                        sunriseSunsetRunning:sunriseUp,
-                        sunriseSunsetLatency:sunriseLatency
+                            mapBoxRunning:mapBoxUp,
+                            mapBoxLatency:mapBoxLatency,
+                            openWeatherRunning:openWeatherUp,
+                            openWeatherLatency:openWeatherLatency,
+                            ipgeolocationRunning:ipgeolocationUp,
+                            ipgeolocationLatency:ipgeolocationLatency,
+                            sunriseSunsetRunning:sunriseUp,
+                            sunriseSunsetLatency:sunriseLatency
                         });
         res.writeHead(200,{'Content-Type':'application/json'})
         res.write(response);
