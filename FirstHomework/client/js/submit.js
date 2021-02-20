@@ -1,8 +1,12 @@
 const domain = "http://localhost";
 const port = 3000;
 var searchBar = document.querySelector('.searchLocation');
+var metricsButton = document.querySelector('.metricsButton');
 var searchButton = document.querySelector('.searchButton');
 var contentPanel = document.querySelector('.content');
+var benchmarkButton = document.querySelector('.benchmarkButton');
+var checkButton = document.querySelector('.checkButton');
+
 
 function getDataFromAPI(location)
 {
@@ -47,7 +51,50 @@ function getDataFromAPI(location)
             contentPanel.append(windKph,date,time,dayLength);
     }).catch((error) => {
         var errorText = document.createElement('p');
-        errorText.textContent = 'Given location cannot be found or something went wrong!';
+        errorText.textContent = 'Given location cannot be found or something went wrong,errorcode:'+ error +"!";
+        errorText.style = "color:red";
+        errorText.className = "data"
+        contentPanel.append(errorText);
+
+    })
+}
+
+function getMetricsFromAPI(){
+    fetch(domain + ':' + port + '/metrics',{
+        headers:{
+            'Accept':'application/json',
+            'Content-Type': 'application/json'
+        },
+        method:"GET",
+    }).then(response => {
+        if(response.ok){
+            return response.json();
+        }else{
+            throw new Error(response.status);
+        }
+    }).then((responseJson) =>   {
+        var averageLatency = document.createElement('p');
+        var maxLatency = document.createElement('p');
+        var getCount = document.createElement('p');
+        var postCount = document.createElement('p');
+        var lastRequestTimestamp = document.createElement('p');
+        averageLatency.textContent = 'AverageLatency: '+responseJson['averageLatency'];
+        maxLatency.textContent = 'MaxLatency: '+responseJson['biggestLatency'];
+        getCount.textContent = 'GET-RequestCount: '+responseJson['getRequestsCount'];
+        postCount.textContent = 'POST-RequestCount: '+responseJson['postRequestsCount'];
+        lastRequestTimestamp.textContent = 'LastRequestTimestamp: ' + responseJson['lastRequest']['timestamp'];
+        [averageLatency,maxLatency,getCount,postCount,lastRequestTimestamp].forEach(async function(e){
+            e.className = 'data';
+            e.style = "color:red;margin-bottom:0px;font-weight:bold;"
+        })
+        contentPanel.append(averageLatency,maxLatency);
+        contentPanel.append(getCount,postCount,lastRequestTimestamp);
+
+
+           
+    }).catch((error) => {
+        var errorText = document.createElement('p');
+        errorText.textContent = 'Something went wrong when fetching metrics,errorcode:'+error+"!";
         errorText.style = "color:red";
         errorText.className = "data"
         contentPanel.append(errorText);
@@ -61,4 +108,19 @@ searchButton.onclick = function(){
         e.parentNode.removeChild(e);
       });
     getDataFromAPI(lookupLocation);
+}
+
+metricsButton.onclick = function(){
+    [].forEach.call(document.querySelectorAll('.data'),function(e){
+        e.parentNode.removeChild(e);
+      });
+    getMetricsFromAPI();
+}
+
+benchmarkButton.onclick = function(){
+    console.log('Click');
+}
+
+checkButton.onclick = function(){
+    console.log('Click');
 }

@@ -7,6 +7,7 @@ const logSchema = new mongoose.Schema({
     method:{required:true,type:String},
     latency:{required:true,type:Number},
     requestBody:{required:false,type:String},
+    responseBody:{required:false,type:String},
     remoteAddress:{required:true,type:String},
     remoteFamily:{required:true,type:String},
     url:{required:true,type:String},

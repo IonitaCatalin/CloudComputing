@@ -5,13 +5,13 @@ require('dotenv').config()
 const getDataFromMapboxAPI = async function(location){
     return axios({
         method: "get",
-        url: `${process.env.MAPBOX_GEOCODING}/${location}.json?access_token=${process.env.MAPBOX_KEY_API}`,
+        url: `${process.env.MAPBOX_GEOCODING}/geocoding/v5/mapbox.places/${location}.json?access_token=${process.env.MAPBOX_KEY_API}`,
       }).then(res => res.data);
 }
 const getDataFromWeatherAPI = async function(lat,long){
     return axios({
         method: "get",
-        url: `${process.env.WEATHER}/current.json?key=${process.env.WEATHER_KEY_API}&q=${lat},${long}`,
+        url: `${process.env.WEATHER}/v1/current.json?key=${process.env.WEATHER_KEY_API}&q=${lat},${long}`,
       }).then(res => res.data);
 }
 
@@ -25,17 +25,23 @@ const getDataFromSunAPI = async function(lat,long,date){
 const getDataFromTimeAPI = async function(lat,long){
     return axios({
         method: "get",
-        url: `${process.env.IPGEOLOCATION}?apiKey=${process.env.IPGEOLOCATION_KEY_API}&lat=${lat}&long=${long}`,
+        url: `${process.env.IPGEOLOCATION}/timezone?apiKey=${process.env.IPGEOLOCATION_KEY_API}&lat=${lat}&long=${long}`,
       }).then(res => res.data);
 }
 
 const searchForMetadata = async function(req,res){
     var requestBody = '';
-    var location = '';
     req.on('data', chunk => {
         requestBody += chunk.toString(); 
     });
     req.on('end', async () => {
+        if(requestBody == ''){
+            const response = {status : 'failed','message': 'JSON required in the body missing'}
+            res.writeHead(400,{'Content-Type':'application/json'})
+            res.body = response;
+            res.write(JSON.stringify(response));
+            res.end();
+        }
         result = JSON.parse(requestBody);
         try{
             const suggestionOnLocations = await getDataFromMapboxAPI(result['location']);
@@ -43,45 +49,45 @@ const searchForMetadata = async function(req,res){
 
                 const response = {status : 'failed','message': 'Location not found anywhere'}
                 res.writeHead(404,{'Content-Type':'application/json'})
+                res.body = response;
                 res.write(JSON.stringify(response));
                 res.end();
             }
             else{
-                var lookupLocation = suggestionOnLocations['features'][0];
-                var lat = lookupLocation['geometry']['coordinates'][1];
-                var long = lookupLocation['geometry']['coordinates'][0];
+                const lookupLocation = suggestionOnLocations['features'][0];
+                const lat = lookupLocation['geometry']['coordinates'][1];
+                const long = lookupLocation['geometry']['coordinates'][0];
                 const currentWeatherConditions = await getDataFromWeatherAPI(lat,long);
                 const temporalCoordinates = await getDataFromTimeAPI(lat,long)
-                var temperatureCelsius = currentWeatherConditions['current']['temp_c'];
-                var windKph = currentWeatherConditions['current']['wind_kph'];
-                var date = temporalCoordinates['date'];
-                var time = temporalCoordinates['time_24'];
+                const date = temporalCoordinates['date'];
                 const solarPosition = await getDataFromSunAPI(lat,long,date)
-                var dayLength = solarPosition['results']['day_length'];
                 
                 res.writeHead(200,{'Content-Type':'application/json'});
-                const response = {status:'success',
+                const response = JSON.stringify({status:'success',
                             'content':
                                      {
                                       'name':result['location'],
-                                      'latitude':lat,
-                                      'longitude':long,
-                                      'temperatureCelsius':temperatureCelsius,
-                                      'windKph':windKph,
-                                      'date':date,
-                                      'time':time,
-                                      'dayLength':dayLength,
+                                      'latitude':lookupLocation['geometry']['coordinates'][1],
+                                      'longitude':lookupLocation['geometry']['coordinates'][0],
+                                      'temperatureCelsius':currentWeatherConditions['current']['temp_c'],
+                                      'windKph':currentWeatherConditions['current']['wind_kph'],
+                                      'date':temporalCoordinates['date'],
+                                      'time':temporalCoordinates['time_24'],
+                                      'dayLength':solarPosition['results']['day_length'],
                                     },
-                            'message':'Data retrieved succesfully for the given location'};
-                res.write(JSON.stringify(response));
+                            'message':'Data retrieved succesfully for the given location'});
+                res.body = response;
+                res.write(response);
                 res.end();
             }
 
         }
         catch(err){
-            const response = {status : 'failed','message': 'Internat server problem'}
+            console.log(err);
+            const response = JSON.stringify({status : 'failed','message': 'Internat server problem'})
             res.writeHead(500,{'Content-Type':'application/json'})
-            res.write(JSON.stringify(response));
+            res.write(response);
+            res.body = response;
             res.end();
         }
     });
@@ -104,26 +110,43 @@ const getMetricsForApp = async function(req,res){
             sumOfLatencies += element['latency'];
         });
         res.writeHead(200,{'Content-Type':'application/json'});
-        res.write(JSON.stringify({
-                averageLatency:sumOfLatencies/dbLogs.length,
-                biggestLatency:biggestLatency,
-                getRequestsCount:getRequests,
-                postRequestsCount:postRequests,
-                lastRequest:dbLogs[dbLogs.length-1]
-        }));
+        const response = JSON.stringify({
+            averageLatency:sumOfLatencies/dbLogs.length,
+            biggestLatency:biggestLatency,
+            getRequestsCount:getRequests,
+            postRequestsCount:postRequests,
+            lastRequest:dbLogs[dbLogs.length-1]
+        });
+        res.body = response;
+        res.write(response);
         res.end();
 
 
     }catch(err){
             console.log(err);
-            const responseJSON = JSON.stringify({status : 'failed','message': 'Internat server problem'});
+            const response = JSON.stringify({status : 'failed','message': 'Internat server problem'});
             res.writeHead(500,{'Content-Type':'application/json'})
-            res.write(responseJSON);
+            res.write(response);
+            res.body = response;
             res.end();
     }
 }
 
+const getAPIServicesStatus = async function()
+{
+    var mapBoxUp = false;
+    var openWeatherUp = false;
+    var ipgeolocationUp = false
+    var sunriseUp = false;
+
+    mapBoxRequest = await axios.get(process.env.MAPBOX_GEOCODING)
+    console.log(mapBoxRequest.status);
+
+
+}
+
 module.exports = {
     searchForMetadata,
-    getMetricsForApp
+    getMetricsForApp,
+    getAPIServicesStatus
 }
