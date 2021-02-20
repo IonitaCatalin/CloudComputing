@@ -132,17 +132,66 @@ const getMetricsForApp = async function(req,res){
     }
 }
 
-const getAPIServicesStatus = async function()
+const getAPIServicesStatus = async function(res)
 {
     var mapBoxUp = false;
+    var mapBoxLatency = 0;
     var openWeatherUp = false;
+    var openWeatherLatency = 0;
     var ipgeolocationUp = false
+    var ipgeolocationLatency = 0;
     var sunriseUp = false;
+    var sunriseLatency = 0;
+    try{
+        var start = Date.now()
+        const mapBoxRequest = await axios.get(process.env.MAPBOX_GEOCODING)
+        console.log(mapBoxRequest.status);
+        if(mapBoxRequest.status == 200  || mapBoxRequest.status == 302){
+            mapBoxUp = true;
+            mapBoxLatency = Date.now() - start;
+        }
+        start = Date.now();
+        const openWeatherRequest = await axios.get(process.env.WEATHER);
+        if(openWeatherRequest.status == 200 || openWeatherRequest.status == 302){
+            openWeatherUp = true;
+            openWeatherLatency = Date.now() - start;
+        }
+        start = Date.now();
+        const ipgeolocationRequest = await axios.get(process.env.IPGEOLOCATION);
+        if(ipgeolocationRequest.status == 200 || ipgeolocationRequest.status == 302){
+            ipgeolocationUp = true;
+            ipgeolocationLatency = Date.now() - start;
+        }
+        start = Date.now();
+        const sunriseRequest = await axios.get(process.env.SUNRISE_SUNSET)
+        if(sunriseRequest.status == 200 || sunriseRequest.status == 302){
+            sunriseUp = true;
+            sunriseLatency = Date.now() - start;
+        }
+        const response = JSON.stringify(
+                        {
+                        mapboxRunning:mapBoxUp,
+                        mapBoxLatency:mapBoxLatency,
+                        openWeatherRunning:openWeatherUp,
+                        openWeatherLatency:openWeatherLatency,
+                        ipgeolocationRunning:ipgeolocationUp,
+                        ipgeolocationLatency:ipgeolocationLatency,
+                        sunriseSunsetRunning:sunriseUp,
+                        sunriseSunsetLatency:sunriseLatency
+                        });
+        res.writeHead(200,{'Content-Type':'application/json'})
+        res.write(response);
+        res.body = response;
+        res.end();
 
-    mapBoxRequest = await axios.get(process.env.MAPBOX_GEOCODING)
-    console.log(mapBoxRequest.status);
-
-
+    }catch(err){
+        console.log(err);
+        const response = JSON.stringify({status : 'failed','message': 'Internat server problem'});
+        res.writeHead(500,{'Content-Type':'application/json'})
+        res.write(response);
+        res.body = response;
+        res.end();
+    }
 }
 
 module.exports = {

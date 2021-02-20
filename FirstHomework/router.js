@@ -56,8 +56,8 @@ module.exports = http.createServer((req,res)=>{
     if(requestUrl.pathname == '/api' && req.method == 'POST'){
         service.searchForMetadata(req,res);
     }
-    if(requestUrl.pathname == '/monitor' && req.method == 'POST'){
-        service.getAPIServicesStatus();
+    if(requestUrl.pathname == '/monitor' && req.method == 'GET'){
+        service.getAPIServicesStatus(res);
     }
     if(requestUrl.pathname == '/metrics' && req.method == 'GET'){
         service.getMetricsForApp(req,res);
