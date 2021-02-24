@@ -6,6 +6,7 @@ self.addEventListener('message', async function(e) {
     const batchId = e.data[0];
     const location = e.data[1];
     const sendTo = e.data[2];
+    const timestamp = e.data[3];
     var status;
 
     var reqResult = await fetch(sendTo,{
@@ -22,6 +23,6 @@ self.addEventListener('message', async function(e) {
         status = 500;
     })
     
-    self.postMessage([batchId,status,reqResult]);
+    self.postMessage([batchId,status,reqResult,timestamp]);
 
 }, false);

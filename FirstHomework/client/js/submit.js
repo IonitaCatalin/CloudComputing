@@ -13,7 +13,7 @@ async function sendReqWorker(sendTo,batchId,locations){
     return new Promise((resolve,reject) =>{
         let result;
         const randLocation = locations[Math.floor(Math.random() * locations.length)];
-        worker.postMessage([batchId,randLocation,sendTo]);
+        worker.postMessage([batchId,randLocation,sendTo,Date.now()]);
         worker.onmessage = function(e){
                 result = e;
                 resolve(result);
@@ -31,9 +31,21 @@ async function sendNBatchesTo(batches,requests,endpoint,locations)
     for(let index = 0 ; index < batches ; index++){
         let promiseArray = await fillBatchArray(requests,endpoint,index,locations);
         Promise.all(promiseArray).then( results =>{
+            let averageLatency = 0 ;
+            let failedReq = 0;
+            let successReq = 0;
+            let batchIndex = results[0].data[0];
             for(let result in results){
-                
+                data = results[result].data;
+                averageLatency += Date.now() - data[3];
+                (data[1] == 200) ? successReq++ : failedReq++
             }
+            let info = document.createElement('p');
+            info.textContent = `Batch#${batchIndex} | Latency:${averageLatency} ms | FailReq: ${failedReq} | SuccReq:${successReq}`;
+            info.className = 'data';
+            info.style = 'color:red;'
+            contentPanel.append(info);
+
         });
 
     }
@@ -56,15 +68,15 @@ function getDataFromAPI(location)
             throw new Error(response);
         }
     }).then((responseJson) =>{
-            var result = responseJson['content'];
-            var location = document.createElement('p');
-            var latitude = document.createElement('p');
-            var longitude = document.createElement('p');
-            var temperatureCelsius = document.createElement('p')
-            var windKph = document.createElement('p');
-            var date = document.createElement('p');
-            var time = document.createElement('p');
-            var dayLength = document.createElement('p');
+            let result = responseJson['content'];
+            let location = document.createElement('p');
+            let latitude = document.createElement('p');
+            let longitude = document.createElement('p');
+            let temperatureCelsius = document.createElement('p')
+            let windKph = document.createElement('p');
+            let date = document.createElement('p');
+            let time = document.createElement('p');
+            let dayLength = document.createElement('p');
             [location,latitude,longitude,temperatureCelsius,windKph,date,time,dayLength].forEach(async function(e){
                 e.className = 'data';
                 e.style = "color:green;margin-bottom:0px;font-weight:bold;"
@@ -81,7 +93,7 @@ function getDataFromAPI(location)
             contentPanel.append(location,latitude,longitude,temperatureCelsius);
             contentPanel.append(windKph,date,time,dayLength);
     }).catch((error) => {
-        var errorText = document.createElement('p');
+        let errorText = document.createElement('p');
         errorText.textContent = 'Something went wrong while fetching data,check for input not to be empty';
         errorText.style = "color:red";
         errorText.className = "data"
@@ -103,11 +115,11 @@ function getMetricsFromAPI(){
             throw new Error(response.status);
         }
     }).then((responseJson) =>   {
-        var averageLatency = document.createElement('p');
-        var maxLatency = document.createElement('p');
-        var getCount = document.createElement('p');
-        var postCount = document.createElement('p');
-        var lastRequestTimestamp = document.createElement('p');
+        let averageLatency = document.createElement('p');
+        let maxLatency = document.createElement('p');
+        let getCount = document.createElement('p');
+        let postCount = document.createElement('p');
+        let lastRequestTimestamp = document.createElement('p');
         averageLatency.textContent = 'AverageLatency: '+responseJson['averageLatency'];
         maxLatency.textContent = 'MaxLatency: '+responseJson['biggestLatency'];
         getCount.textContent = 'GET-RequestCount: '+responseJson['getRequestsCount'];
@@ -121,7 +133,7 @@ function getMetricsFromAPI(){
         contentPanel.append(getCount,postCount,lastRequestTimestamp);
            
     }).catch((error) => {
-        var errorText = document.createElement('p');
+        let errorText = document.createElement('p');
         errorText.textContent = 'Something went wrong when fetching metrics,errorcode:'+error+"!";
         errorText.style = "color:red";
         errorText.className = "data"
@@ -143,14 +155,14 @@ function getMonitorFromAPI(){
             throw new Error(response.status);
         }
     }).then((responseJson) =>{
-        var mapBoxStatus = document.createElement('p');
-        var mapBoxLatency = document.createElement('p');
-        var openWeatherStatus = document.createElement('p');
-        var openWeatherLatency = document.createElement('p');
-        var ipgeolocationStatus = document.createElement('p');
-        var ipgeolocationLatency = document.createElement('p');
-        var sunriseStatus = document.createElement('p');
-        var sunriseLatency = document.createElement('p');
+        let mapBoxStatus = document.createElement('p');
+        let mapBoxLatency = document.createElement('p');
+        let openWeatherStatus = document.createElement('p');
+        let openWeatherLatency = document.createElement('p');
+        let ipgeolocationStatus = document.createElement('p');
+        let ipgeolocationLatency = document.createElement('p');
+        let sunriseStatus = document.createElement('p');
+        let sunriseLatency = document.createElement('p');
 
 
         mapBoxStatus.textContent = 'MapBoxStatus: ' + responseJson['mapBoxRunning'];
@@ -171,7 +183,7 @@ function getMonitorFromAPI(){
 
     }).catch((error) => {
         console.log(error)
-        var errorText = document.createElement('p');
+        let errorText = document.createElement('p');
         errorText.textContent = 'Something went wrong fetching monitor data errorcode:'+ error +"!";
         errorText.style = "color:red";
         errorText.className = "data"
@@ -199,7 +211,7 @@ benchmarkButton.onclick = function(){
     [].forEach.call(document.querySelectorAll('.data'),function(e){
         e.parentNode.removeChild(e);
       });
-    sendNBatchesTo(5,3,domain+':'+port+'/api',['Paris','Moroco','Alaska','Angola']);
+    sendNBatchesTo(10,3,domain+':'+port+'/api',['Paris','Moroco','Alaska','Angola']);
 }
 
 checkButton.onclick = function(){
