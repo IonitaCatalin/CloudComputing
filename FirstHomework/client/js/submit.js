@@ -1,12 +1,36 @@
 const domain = "http://localhost";
-const port = 3000;
 var searchBar = document.querySelector('.searchLocation');
 var metricsButton = document.querySelector('.metricsButton');
 var searchButton = document.querySelector('.searchButton');
 var contentPanel = document.querySelector('.content');
 var benchmarkButton = document.querySelector('.benchmarkButton');
 var checkButton = document.querySelector('.checkButton');
+var concurrentCallsRes;
 
+const port = 3000;
+
+function sendRequestTo(sendTo){
+    console.log(`Starting sending request to ${sendTo}`);
+    return fetch(sendTo,{
+            headers:{
+                'Accept':'application/json',
+                'Content-Type': 'application/json'
+            },
+            method:"POST",
+            body : JSON.stringify({'location':'Alaska'})
+        });
+}
+
+async function sendNRequestBatchesTo(batchesCount,requests,endpoint)
+{   
+    const batches = Array(batchesCount).fill(Array(requests).fill(sendRequestTo(endpoint)))
+    const sendAt = Date.now();
+    for(batch in batches){
+        await Promise.all(batches[batch]).then(results=>{
+            console.log(results);
+        })
+    }
+}
 
 function getDataFromAPI(location)
 {
@@ -168,8 +192,7 @@ metricsButton.onclick = function(){
 }
 
 benchmarkButton.onclick = function(){
-    console.log('Click');
-    
+    sendNRequestBatchesTo(2,5,domain + ':' + port + '/api');
 }
 
 checkButton.onclick = function(){

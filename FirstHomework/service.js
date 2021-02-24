@@ -144,7 +144,6 @@ const getAPIServicesStatus = async function(res)
     try{
         var start = Date.now()
         const mapBoxRequest = await axios.get(process.env.MAPBOX_GEOCODING)
-        console.log(mapBoxRequest.status);
         if(mapBoxRequest.status == 200  || mapBoxRequest.status == 302){
             mapBoxUp = true;
             mapBoxLatency = Date.now() - start;
