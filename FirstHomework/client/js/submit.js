@@ -5,30 +5,37 @@ var searchButton = document.querySelector('.searchButton');
 var contentPanel = document.querySelector('.content');
 var benchmarkButton = document.querySelector('.benchmarkButton');
 var checkButton = document.querySelector('.checkButton');
-var concurrentCallsRes;
-
 const port = 3000;
 
-function sendRequestTo(sendTo){
-    console.log(`Starting sending request to ${sendTo}`);
-    return fetch(sendTo,{
-            headers:{
-                'Accept':'application/json',
-                'Content-Type': 'application/json'
-            },
-            method:"POST",
-            body : JSON.stringify({'location':'Alaska'})
-        });
+
+async function sendReqWorker(sendTo,batchId,locations){
+    var worker = new Worker('http://localhost:3000/js/worker.js');
+    return new Promise((resolve,reject) =>{
+        let result;
+        const randLocation = locations[Math.floor(Math.random() * locations.length)];
+        worker.postMessage([batchId,randLocation,sendTo]);
+        worker.onmessage = function(e){
+                result = e;
+                resolve(result);
+            }
+    })
 }
 
-async function sendNRequestBatchesTo(batchesCount,requests,endpoint)
+async function fillBatchArray(requests,sendTo,batchId,locations){
+    return Array(requests).fill(sendReqWorker(sendTo,batchId,locations))
+}
+
+
+async function sendNBatchesTo(batches,requests,endpoint,locations)
 {   
-    const batches = Array(batchesCount).fill(Array(requests).fill(sendRequestTo(endpoint)))
-    const sendAt = Date.now();
-    for(batch in batches){
-        await Promise.all(batches[batch]).then(results=>{
-            console.log(results);
-        })
+    for(let index = 0 ; index < batches ; index++){
+        let promiseArray = await fillBatchArray(requests,endpoint,index,locations);
+        Promise.all(promiseArray).then( results =>{
+            for(let result in results){
+                
+            }
+        });
+
     }
 }
 
@@ -46,7 +53,7 @@ function getDataFromAPI(location)
         if(response.ok){
             return response.json();
         }else{
-            throw new Error(response.status);
+            throw new Error(response);
         }
     }).then((responseJson) =>{
             var result = responseJson['content'];
@@ -75,11 +82,10 @@ function getDataFromAPI(location)
             contentPanel.append(windKph,date,time,dayLength);
     }).catch((error) => {
         var errorText = document.createElement('p');
-        errorText.textContent = 'Given location cannot be found or something went wrong,errorcode:'+ error +"!";
+        errorText.textContent = 'Something went wrong while fetching data,check for input not to be empty';
         errorText.style = "color:red";
         errorText.className = "data"
         contentPanel.append(errorText);
-
     })
 }
 
@@ -113,8 +119,6 @@ function getMetricsFromAPI(){
         })
         contentPanel.append(averageLatency,maxLatency);
         contentPanel.append(getCount,postCount,lastRequestTimestamp);
-
-
            
     }).catch((error) => {
         var errorText = document.createElement('p');
@@ -192,7 +196,10 @@ metricsButton.onclick = function(){
 }
 
 benchmarkButton.onclick = function(){
-    sendNRequestBatchesTo(2,5,domain + ':' + port + '/api');
+    [].forEach.call(document.querySelectorAll('.data'),function(e){
+        e.parentNode.removeChild(e);
+      });
+    sendNBatchesTo(5,3,domain+':'+port+'/api',['Paris','Moroco','Alaska','Angola']);
 }
 
 checkButton.onclick = function(){

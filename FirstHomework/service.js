@@ -36,14 +36,11 @@ const searchForMetadata = async function(req,res){
     });
     req.on('end', async () => {
         if(requestBody == ''){
-            const response = {status : 'failed','message': 'JSON required in the body missing'}
-            res.writeHead(400,{'Content-Type':'application/json'})
-            res.body = response;
-            res.write(JSON.stringify(response));
-            res.end();
+            throw new Error('Location parameter cannot be null');
         }
         result = JSON.parse(requestBody);
         try{
+            console.log(`Resolving now:${result['location']}`)
             const suggestionOnLocations = await getDataFromMapboxAPI(result['location']);
             if(suggestionOnLocations['features'].length == 0){
 
@@ -83,7 +80,7 @@ const searchForMetadata = async function(req,res){
 
         }
         catch(err){
-            const response = JSON.stringify({status : 'failed','message': 'Internat server problem'})
+            const response = JSON.stringify({status : 'failed','message': err})
             res.writeHead(500,{'Content-Type':'application/json'})
             res.write(response);
             res.body = response;

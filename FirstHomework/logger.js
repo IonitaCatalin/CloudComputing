@@ -29,7 +29,6 @@ const logOnRequest = async function(req,res){
               }
             });
         console.log(requestLog);
-        console.log(res.body);
         const asPerResponseParam = new Response({
                                     statusCode:statusCode,
                                     statusMessage:statusMessage

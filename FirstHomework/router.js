@@ -52,6 +52,20 @@ module.exports = http.createServer((req,res)=>{
             res.end()
 
         })
+    }
+    if(requestUrl.pathname == '/js/worker.js' && req.method == 'GET'){
+        fs.readFile('./client/js/worker.js',function(err,js){
+            if(err){
+                res.writeHead(404, { 'Content-Type': 'text/javascript' });
+                res.write('File not found on the server')
+                res.end();
+            }
+
+            res.writeHeader(200,{"Content-Type":"text/javascript"});
+            res.write(js)
+            res.end()
+
+        })
     }   
     if(requestUrl.pathname == '/api' && req.method == 'POST'){
         service.searchForMetadata(req,res);
