@@ -1,0 +1,55 @@
+1.GET,POST,PUT,DELETE 
+2.Cel putin doua rute pentru fiecare HTTP verb
+3.Intuitiv si usor de folosit
+4.Bazat pe resurse 
+5.Idempotenta si siguranta proprietatilor pentru verbele HTTP
+6. Status codes
+7.JSON based
+8.POSTMAN collections
+
+Idei:
+    -> O aplicatie care iti ofera informatii despre o anumita locatie si iti permite sa 
+        salvezi locatii de preferinta pentru a-le analiza mai tarziu.Totul trebuie sa fie bazat
+        pe autentificare pe baza de token.
+    -> Deocamdata avem partea care iti aduce informatii dar nu este foarte interactiva ceea ce trebuie rezolvat
+    -> Locatiile salvate sa poate fi comparate intre ele
+    -> Addition: Un API care sa poate sa trimita oferte pentru hoteluri locale
+    -> Pagina de admin cu feature-urile deja implementate
+
+
+API :
+  -> endpoint: api/users
+    -->GET: GET own user details for its profile
+    -->POST: register a new user in the system
+  -> endpoint: api/users/user_name 
+    -->PATCH: change data about a users profile
+    -->DELETE: delete the entire user profile
+   -> endpoint: api/session
+    -->POST: data required for authentication returns a JWT for a session of requests
+   -> endpoint: api/session/refresh
+    -->POST: data required for refreshing the current JWT token
+   -> endpoint: api/locations?suggestion='Par'
+    -->GET: get a list of locations for the keyword
+   -> endpoint: api/locations/location_name
+    -->GET: get a bunch of data for the specified location,it must be an know location
+            even though you might get a result but you might want to use the specified
+            endpoint for getting a suggestion for a keyword.
+   -> endpoint: api/locationss/preferences
+    -->GET: get a list of user prefered locations
+    -->DELETE: delete the user prefered locations
+    -->PATCH: update one of the user prefered locations
+    -->POST: add a specified location to the list of prefferences in the back
+   -> endpoint: api/locations/preferences/{id}
+    -->GET: get the location which is on spot {id}
+    -->PUT: replace entirely the location which is on spot {id}
+   ->endpoint: api/admin
+    -!> Only a user having a special token might user the functionalities described here
+    --!>All the previous functionalities for benchmarking the api
+
+
+
+
+
+
+
+
