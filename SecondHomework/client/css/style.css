@@ -1,0 +1,80 @@
+
+body{
+  background: #f2f2f2;
+}
+
+.container
+{
+  display:grid;
+  grid-auto-flow: column;
+}
+
+.search {
+  width: 100%;
+  position: relative;
+  display: flex;
+}
+
+.searchLocation {
+  width: 100%;
+  border: 3px solid #00B4CC;
+  border-right: none;
+  padding: 5px;
+  height: 20px;
+  border-radius: 5px 0 0 5px;
+  outline: none;
+  color: #9DBFAF;
+}
+
+.searchLocation:focus{
+  color: #00B4CC;
+}
+
+.searchButton,.metricsButton,.benchmarkButton,.checkButton{
+  width: 40px;
+  height: 36px;
+  border: 1px solid #00B4CC;
+  background: #00B4CC;
+  text-align: center;
+  color: #fff;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.wrap{
+  width: 30%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.logo
+{
+  text-align: center;
+  font-size: 60px;
+  padding-bottom: 20px;
+  text-transform: uppercase;
+  font-family: verdana;
+  font-size: 2.5em;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 1px 1px 1px #919191,
+      1px 2px 1px #919191,
+      1px 3px 1px #919191,
+      1px 4px 1px #919191,
+      1px 5px 1px #919191,
+      1px 6px 1px #919191,
+      1px 7px 1px #919191,
+      1px 8px 1px #919191,
+      1px 9px 1px #919191,
+      1px 10px 1px #919191,
+  1px 18px 6px rgba(16,16,16,0.4),
+  1px 22px 10px rgba(16,16,16,0.2),
+  1px 25px 35px rgba(16,16,16,0.2),
+  1px 30px 60px rgba(16,16,16,0.4);
+}
+.content
+{
+  text-align: center;
+  font-size:23px;
+}
