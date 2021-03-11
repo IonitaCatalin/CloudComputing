@@ -223,8 +223,8 @@ const registerNewUser = async function(req,res){
                     password:bodyJSON['password'],
                     preferences:[]
                 })
-                const createdUser = await User.create(user);
-                res.writeHead(409,{'Content-Type':'application/json'})
+                const createUser = await User.create(user);
+                res.writeHead(201,{'Content-Type':'application/json'})
                 res.end(JSON.stringify({status:"failed",message:"User created succesfully"}));
 
             }catch(err){
@@ -237,7 +237,7 @@ const registerNewUser = async function(req,res){
     })
 }
 
-const logInUser = function(req,res){
+const logInUser = async function(req,res){
     var requestBody = '';
     req.on('data', chunk => {
         requestBody += chunk.toString(); 
@@ -257,7 +257,8 @@ const logInUser = function(req,res){
         var clientToken = '';
         if(loggedUser.length === 1){
             try{
-                clientToken = jwt.sign({_id:loggedUser['uuid']},process.env.SECRET_KEY,{expiresIn:86400});
+                console.log(loggedUser[0]['uuid']);
+                clientToken = jwt.sign({id:loggedUser[0]['uuid']},process.env.SECRET_KEY,{expiresIn:86400});
 
             }catch(err){
                 res.writeHead(500,{'Content-Type:':'application/json'})
@@ -275,9 +276,44 @@ const logInUser = function(req,res){
 
 }
 
-const getUserData = function(req,res){
-    
+const fetchUserProfile = async function(res,id){
+    const loggedUser = await User.find({uuid:id});
+    const user = loggedUser[0];
+    if(loggedUser.length === 0){
+        res.writeHead(404,{'Content-Type':'application/json'})
+        res.end(JSON.stringify({status:"failed",message:"User not found"}));
+    }else{
+        res.writeHead(200,{'Content-Type':'application/json'})
+        res.end(JSON.stringify({status:"success",content:
+            {
+                username:user['username'],
+                email:user['email']
+            },
+        message:"User found succesfully"}));
+    }
 }
+const deleteUserProfile = async function(res,id){
+    const existsUser = await User.exists({uuid:id});
+    if(!existsUser){
+        res.writeHead(404,{'Content-Type':'application/json'})
+        res.end(JSON.stringify({status:"failed",message:"User not found"}));
+    }else{
+        try{
+            const deletedUser = await User.deleteOne({uuid:id});
+            res.writeHead(202,{'Content-Type':'application/json'})
+            res.end(JSON.stringify({status:"failed",message:"User deleted succesfully"}));
+
+        }catch(err){
+            res.writeHead(500,{'Content-Type':'application/json'})
+            res.end(JSON.stringify({status:"failed",message:"Something went wrong"}));
+        }
+    }
+}
+
+const updateUserProfile = async function(req,res,id){
+
+}
+
 
 module.exports = {
     searchForLocation,
@@ -285,5 +321,7 @@ module.exports = {
     getAPIServicesStatus,
     registerNewUser,
     logInUser,
-    getUserData,
+    fetchUserProfile,
+    deleteUserProfile,
+    updateUserProfile
 }

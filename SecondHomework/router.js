@@ -23,8 +23,8 @@ const verifyJWT = async function(req,res,callback){
     }
     else{
         try{
-            jwt.verify(req.headers['authorization'],process.env.SECRET_KEY);
-            callback();
+            const payload = jwt.verify(String(req.headers['authorization']).split(" ")[1],process.env.SECRET_KEY);
+            callback(payload);
         }catch(err){
             res.writeHead(401, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({status:"failed",message:"Unauthorized access"}));
@@ -191,10 +191,13 @@ module.exports = http.createServer((req,res)=>{
         })
     }
     if(requestUrl.pathname == '/api/users' && req.method == 'GET'){
-        verifyJWT(req,res,async ()=>{
-            checkMIMEType(req,res,'application/json',async ()=>{
-                service.getUserData(req,res);
-            })
+        verifyJWT(req,res,async (payload)=>{
+            service.fetchUserProfile(res,payload['id']);
+        })
+    }
+    if(requestUrl.pathname == '/api/users' && req.method == 'DELETE'){
+        verifyJWT(req,res,async (payload)=>{
+            service.deleteUserProfile(res,payload['id']);
         })
     }
 

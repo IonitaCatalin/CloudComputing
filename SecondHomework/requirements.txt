@@ -18,10 +18,10 @@ Idei:
 
 API :
 
-  -> endpoint: api/users
-    -->GET: GET own user details for its profile
-    -->PATCH: change data about a users profile
-    -->DELETE: delete the entire user profile
+   |-> endpoint: api/users
+    | -->GET: GET own user details for its profile
+    | -->PATCH: change data about a users profile
+    | -->DELETE: delete the entire user profile
   |-> endpoint: api/login
     -->POST:login data  
   |-> endpoint: api/register
@@ -37,6 +37,7 @@ API :
     -->DELETE: delete the user prefered locations
     -->PATCH: update one of the user prefered locations
     -->POST: add a specified location to the list of prefferences in the back
+
    -> endpoint: api/locations/preferences/{id}
     -->GET: get the location which is on spot {id}
     -->PUT: replace entirely the location which is on spot {id}
