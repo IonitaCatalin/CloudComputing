@@ -21,13 +21,13 @@ API :
   -> endpoint: api/users
     -->GET: GET own user details for its profile
     -->POST: register a new user in the system
-  -> endpoint: api/users/user_name 
+  -> endpoint: api/users/user_name
     -->PATCH: change data about a users profile
     -->DELETE: delete the entire user profile
-   -> endpoint: api/session
-    -->POST: data required for authentication returns a JWT for a session of requests
-   -> endpoint: api/session/refresh
-    -->POST: data required for refreshing the current JWT token
+  -> endpoint: api/login
+    -->POST:login data  
+  -> endpoint: api/register
+    -->POST:register data
    -> endpoint: api/locations?suggestion='Par'
     -->GET: get a list of locations for the keyword
    -> endpoint: api/locations/location_name

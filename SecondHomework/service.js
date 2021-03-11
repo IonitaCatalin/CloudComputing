@@ -1,5 +1,5 @@
 const axios = require('axios');
-const {Log,Response} = require('./models')
+const {Log,Response,User} = require('./models')
 require('dotenv').config()
 
 const getDataFromMapboxAPI = async function(location){
@@ -29,7 +29,8 @@ const getDataFromTimeAPI = async function(lat,long){
       }).then(res => res.data);
 }
 
-const searchForMetadata = async function(req,res){
+
+const searchForLocation = function(req,res){
     var requestBody = '';
     req.on('data', chunk => {
         requestBody += chunk.toString(); 
@@ -181,7 +182,7 @@ const getAPIServicesStatus = async function(res)
 
     }catch(err){
         console.log(err);
-        const response = JSON.stringify({status : 'failed','message': 'Internat server problem'});
+        const response = JSON.stringify({status : 'failed',message: "Internat server problem"});
         res.writeHead(500,{'Content-Type':'application/json'})
         res.write(response);
         res.body = response;
@@ -189,8 +190,37 @@ const getAPIServicesStatus = async function(res)
     }
 }
 
+const registerNewUser = async function(req,res){
+    var requestBody = '';
+    req.on('data', chunk => {
+        requestBody += chunk.toString(); 
+    });
+    req.on('end',async ()=>{
+        try{
+            bodyJSON = JSON.parse(requestBody);
+        }catch(err){
+            res.writeHead(400,{'Content-Type':'application/json'})
+            res.write(JSON.stringify({status:"failed",message:"Malformed JSON's body"}));
+            res.end();
+        }
+        if(bodyJSON['username'] === undefined || bodyJSON['email'] === undefined || bodyJSON['password'] === undefined){
+            res.writeHead(400,{'Content-Type':'application/json'})
+            res.write(JSON.stringify({status:"failed",message:"Missing required fields(ex:username,password,email)"}));
+            res.end();
+        } 
+        console.log(User.find({username:bodyJSON['username']}));
+        if(User.find({username:bodyJSON['username']}).length !== 0 || User.find({username:bodyJSON['email']}).length !==0 ){
+            res.writeHead(409,{'Content-Type':'application/json'})
+            res.write(JSON.stringify({status:"failed",message:"There is another user registered with the current details(username,email)"}));
+            res.end();
+        }
+
+    })
+}
+
 module.exports = {
-    searchForMetadata,
+    searchForLocation,
     getMetricsForApp,
-    getAPIServicesStatus
+    getAPIServicesStatus,
+    registerNewUser
 }

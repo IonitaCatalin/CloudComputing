@@ -5,7 +5,9 @@
   "main": "index.js",
   "dependencies": {
     "axios": "^0.21.1",
+    "bcryptjs": "^2.4.3",
     "dotenv": "^8.2.0",
+    "jsonwebtoken": "^8.5.1",
     "mongodb": "^3.6.3",
     "mongoose": "^5.11.17"
   },
