@@ -1,5 +1,7 @@
 const axios = require('axios');
 const {Log,Response,User} = require('./models')
+const { v4: uuidv4 } = require('uuid');
+const jwt = require('jsonwebtoken');
 require('dotenv').config()
 
 const getDataFromMapboxAPI = async function(location){
@@ -200,27 +202,88 @@ const registerNewUser = async function(req,res){
             bodyJSON = JSON.parse(requestBody);
         }catch(err){
             res.writeHead(400,{'Content-Type':'application/json'})
-            res.write(JSON.stringify({status:"failed",message:"Malformed JSON's body"}));
-            res.end();
+            res.end(JSON.stringify({status:"failed",message:"Malformed JSON's body"}));
         }
         if(bodyJSON['username'] === undefined || bodyJSON['email'] === undefined || bodyJSON['password'] === undefined){
             res.writeHead(400,{'Content-Type':'application/json'})
-            res.write(JSON.stringify({status:"failed",message:"Missing required fields(ex:username,password,email)"}));
-            res.end();
+            res.end(JSON.stringify({status:"failed",message:"Missing required fields(ex:username,password,email)"}));
         } 
-        console.log(User.find({username:bodyJSON['username']}));
-        if(User.find({username:bodyJSON['username']}).length !== 0 || User.find({username:bodyJSON['email']}).length !==0 ){
+        const usrnmConfl = await User.exists({username:bodyJSON['username']});
+        const emailConfl = await User.exists({email:bodyJSON['email']});
+        if(usrnmConfl || emailConfl){
             res.writeHead(409,{'Content-Type':'application/json'})
-            res.write(JSON.stringify({status:"failed",message:"There is another user registered with the current details(username,email)"}));
-            res.end();
+            res.end(JSON.stringify({status:"failed",message:"There is another user with the specified fields(username,email)"}));
+        }
+        else{
+            try{
+                const user = new User({
+                    uuid:uuidv4(),
+                    username:bodyJSON['username'],
+                    email:bodyJSON['email'],
+                    password:bodyJSON['password'],
+                    preferences:[]
+                })
+                const createdUser = await User.create(user);
+                res.writeHead(409,{'Content-Type':'application/json'})
+                res.end(JSON.stringify({status:"failed",message:"User created succesfully"}));
+
+            }catch(err){
+                console.log('Eroare')
+                res.writeHead(500,{'Content-Type':'application/json'})
+                res.end(JSON.stringify({status:"failed",message:"Something went wrong"}));
+            }
+        }
+        
+    })
+}
+
+const logInUser = function(req,res){
+    var requestBody = '';
+    req.on('data', chunk => {
+        requestBody += chunk.toString(); 
+    });
+    req.on('end',async ()=>{
+        try{
+            bodyJSON = JSON.parse(requestBody);
+        }catch(err){
+            res.writeHead(400,{'Content-Type':'application/json'})
+            res.end(JSON.stringify({status:"failed",message:"Malformed JSON's body"}));
+        }
+        if(bodyJSON['username'] === undefined || bodyJSON['password'] === undefined){
+            res.writeHead(400,{'Content-Type':'application/json'})
+            res.end(JSON.stringify({status:"failed",message:"Missing required fields(ex:username,password)"}));
+        } 
+        const loggedUser = await User.find({username:bodyJSON['username'],password:bodyJSON['password']});
+        var clientToken = '';
+        if(loggedUser.length === 1){
+            try{
+                clientToken = jwt.sign({_id:loggedUser['uuid']},process.env.SECRET_KEY,{expiresIn:86400});
+
+            }catch(err){
+                res.writeHead(500,{'Content-Type:':'application/json'})
+                res.end(JSON.stringify({status:"failed",message:"Internal problems generating tokens"}));
+            }
+            res.writeHead(500,{'Content-Type':'application/json'})
+            res.end(JSON.stringify({status:"success",content:{token:clientToken},message:"Logged in succesfully"}));
+        }
+        else{
+            res.writeHead(404,{'Content-Type':'application/json'})
+            res.end(JSON.stringify({status:"failed",message:"User not found"}));
         }
 
     })
+
+}
+
+const getUserData = function(req,res){
+    
 }
 
 module.exports = {
     searchForLocation,
     getMetricsForApp,
     getAPIServicesStatus,
-    registerNewUser
+    registerNewUser,
+    logInUser,
+    getUserData,
 }

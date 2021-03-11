@@ -2,6 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const logger  = require('./logger.js');
 const service = require('./service.js');
+const jwt = require('jsonwebtoken');
 
 const checkMIMEType = async function(req,res,type,callback){
     const contentType = req.headers['content-type'];
@@ -13,8 +14,25 @@ const checkMIMEType = async function(req,res,type,callback){
         res.write(JSON.stringify({status:"failed",message:"Only json format accepted"}));
         res.end();
     }
-    
 }   
+
+const verifyJWT = async function(req,res,callback){
+    if(req.headers['authorization'] === undefined){
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({status:"failed",message:"Missing authorization header"}));
+    }
+    else{
+        try{
+            jwt.verify(req.headers['authorization'],process.env.SECRET_KEY);
+            callback();
+        }catch(err){
+            res.writeHead(401, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({status:"failed",message:"Unauthorized access"}));
+        }
+
+    }
+    
+}
 
 
 module.exports = http.createServer((req,res)=>{
@@ -165,6 +183,18 @@ module.exports = http.createServer((req,res)=>{
     if(requestUrl.pathname == '/api/register' && req.method == 'POST'){
         checkMIMEType(req,res,'application/json',async ()=>{
             service.registerNewUser(req,res);
+        })
+    }
+    if(requestUrl.pathname == '/api/login' && req.method == 'POST'){
+        checkMIMEType(req,res,'application/json',async ()=>{
+            service.logInUser(req,res);
+        })
+    }
+    if(requestUrl.pathname == '/api/users' && req.method == 'GET'){
+        verifyJWT(req,res,async ()=>{
+            checkMIMEType(req,res,'application/json',async ()=>{
+                service.getUserData(req,res);
+            })
         })
     }
 

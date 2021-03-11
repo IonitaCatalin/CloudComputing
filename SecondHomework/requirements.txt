@@ -16,17 +16,15 @@ Idei:
     -> Addition: Un API care sa poate sa trimita oferte pentru hoteluri locale
     -> Pagina de admin cu feature-urile deja implementate
 
-
 API :
+
   -> endpoint: api/users
     -->GET: GET own user details for its profile
-    -->POST: register a new user in the system
-  -> endpoint: api/users/user_name
     -->PATCH: change data about a users profile
     -->DELETE: delete the entire user profile
-  -> endpoint: api/login
+  |-> endpoint: api/login
     -->POST:login data  
-  -> endpoint: api/register
+  |-> endpoint: api/register
     -->POST:register data
    -> endpoint: api/locations?suggestion='Par'
     -->GET: get a list of locations for the keyword
@@ -34,7 +32,7 @@ API :
     -->GET: get a bunch of data for the specified location,it must be an know location
             even though you might get a result but you might want to use the specified
             endpoint for getting a suggestion for a keyword.
-   -> endpoint: api/locationss/preferences
+   -> endpoint: api/locations/preferences
     -->GET: get a list of user prefered locations
     -->DELETE: delete the user prefered locations
     -->PATCH: update one of the user prefered locations
