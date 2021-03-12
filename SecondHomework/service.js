@@ -32,66 +32,6 @@ const getDataFromTimeAPI = async function(lat,long){
 }
 
 
-const searchForLocation = function(req,res){
-    var requestBody = '';
-    req.on('data', chunk => {
-        requestBody += chunk.toString(); 
-    });
-    req.on('end', async () => {
-        if(requestBody == ''){
-            throw new Error('Location parameter cannot be null');
-        }
-        result = JSON.parse(requestBody);
-        try{
-            console.log(`Resolving now:${result['location']}`)
-            const suggestionOnLocations = await getDataFromMapboxAPI(result['location']);
-            if(suggestionOnLocations['features'].length == 0){
-
-                const response = {status : 'failed','message': 'Location not found anywhere'}
-                res.writeHead(404,{'Content-Type':'application/json'})
-                res.body = response;
-                res.write(JSON.stringify(response));
-                res.end();
-            }
-            else{
-                const lookupLocation = suggestionOnLocations['features'][0];
-                const lat = lookupLocation['geometry']['coordinates'][1];
-                const long = lookupLocation['geometry']['coordinates'][0];
-                const currentWeatherConditions = await getDataFromWeatherAPI(lat,long);
-                const temporalCoordinates = await getDataFromTimeAPI(lat,long)
-                const date = temporalCoordinates['date'];
-                const solarPosition = await getDataFromSunAPI(lat,long,date)
-                
-                res.writeHead(200,{'Content-Type':'application/json'});
-                const response = JSON.stringify({status:'success',
-                            'content':
-                                     {
-                                      'name':result['location'],
-                                      'latitude':lookupLocation['geometry']['coordinates'][1],
-                                      'longitude':lookupLocation['geometry']['coordinates'][0],
-                                      'temperatureCelsius':currentWeatherConditions['current']['temp_c'],
-                                      'windKph':currentWeatherConditions['current']['wind_kph'],
-                                      'date':temporalCoordinates['date'],
-                                      'time':temporalCoordinates['time_24'],
-                                      'dayLength':solarPosition['results']['day_length'],
-                                    },
-                            'message':'Data retrieved successfully for the given location'});
-                res.body = response;
-                res.write(response);
-                res.end();
-            }
-
-        }
-        catch(err){
-            const response = JSON.stringify({status : 'failed','message': err})
-            res.writeHead(500,{'Content-Type':'application/json'})
-            res.write(response);
-            res.body = response;
-            res.end();
-        }
-    });
-}
-
 const getMetricsForApp = async function(req,res){
     try{
         const dbLogs = await Log.find().populate("response")
@@ -435,10 +375,10 @@ const createCategory = function(req,res,id){
 }   
 
 const getCategories = async function(res,id){
-    const user = await User.findOne({uuid:id});
-    if(user !== undefined){
+    const userExists = await User.exists({uuid:id})
+    if(userExists){
+        const user = await User.findOne({uuid:id});
         res.writeHead(200,{'Content-Type':'application/json'})
-
         res.end(JSON.stringify({status:"success",content:{
             categories:user['categories']
         },message:"Categories retrieved successfully"}));
@@ -481,19 +421,24 @@ const addLocationToCtg = function(req,res,id,ctg){
         const existsUser = await User.exists({uuid:id});
         if(existsUser){
             const existsCategory = await User.exists({uuid:id,'categories.name':ctg});
-            console.log(existsCategory);
+            const existsLocation = await User.exists({uuid:id,'categories.name':ctg,"categories.$.locations": bodyJSON['location']})
+            console.log(existsLocation);
             if(existsCategory){
-                try{
-                    await User.findOneAndUpdate({uuid:id,'categories.name':ctg},{$push:{"categories.$.locations": bodyJSON['location']}})
-                    res.writeHead(200,{'Content-Type':'application/json'})
-                    res.end(JSON.stringify({status:"success",message:"Location added to category successfully"}));
-                }catch(err){
-                    console.log(err);
-                    res.writeHead(500,{'Content-Type':'application/json'})
-                    res.end(JSON.stringify({status:"failed",message:"Something went wrong"}));
+                if(!existsLocation){
+                        try{
+                            await User.findOneAndUpdate({uuid:id,'categories.name':ctg},{$push:{"categories.$.locations": bodyJSON['location']}})
+                            res.writeHead(200,{'Content-Type':'application/json'})
+                            res.end(JSON.stringify({status:"success",message:"Location added to category successfully"}));
+                        }catch(err){
+                            console.log(err);
+                            res.writeHead(500,{'Content-Type':'application/json'})
+                            res.end(JSON.stringify({status:"failed",message:"Something went wrong"}));
+                        }
+                }else{
+                    res.writeHead(409,{'Content-Type':'application/json'})
+                    res.end(JSON.stringify({status:"failed",message:"Location already exists in the current category"}));
                 }
-            }
-            else{
+            }else{
                 res.writeHead(404,{'Content-Type':'application/json'})
                 res.end(JSON.stringify({status:"failed",message:"Category not found"}));
             }
@@ -505,12 +450,97 @@ const addLocationToCtg = function(req,res,id,ctg){
 }
 
 const deleteLocationFromCtg = async function(res,id,ctg,locId){
+    
+    const existsUser = await User.exists({uuid:id});
+    if(existsUser){
+        const existsCategory = await User.exists({uuid:id,'categories.name':ctg});
+        if(existsCategory){
+            const preferences = await User.findOne({uuid:id,'categories.name':ctg},{'categories.$':1});
+            if(preferences['categories'][0]['locations'].length >= locId){
+                const value = preferences['categories'][0]['locations'][locId];
+                await User.findOneAndUpdate({uuid:id,'categories.name':ctg},{$pull:{"categories.$.locations": value}})
+                res.writeHead(202,{'Content-Type':'application/json'})
+                res.end(JSON.stringify({status:"failed",message:"Location deleted successfully"}));
+            }else{
+                res.writeHead(404,{'Content-Type':'application/json'})
+                res.end(JSON.stringify({status:"failed",message:"Location with the specified id not found in the specified category"}));
+            }
+        }else{
+            res.writeHead(404,{'Content-Type':'application/json'})
+            res.end(JSON.stringify({status:"failed",message:"Category not found"}));
+        }
+    }
+    else{
+        res.writeHead(404,{'Content-Type':'application/json'})
+        res.end(JSON.stringify({status:"failed",message:"User not found"}));
+    }
+}
 
+const getDataForLoc = async function(res,id,ctg,locId){
+    const existsUser = await User.exists({uuid:id});
+    console.log(locId);
+    if(existsUser){
+        const existsCategory = await User.exists({uuid:id,'categories.name':ctg});
+        if(existsCategory){
+            const preferences = await User.findOne({uuid:id,'categories.name':ctg},{'categories.$':1});
+            if(preferences['categories'][0]['locations'].length >= locId){
+                const value = preferences['categories'][0]['locations'][locId];
+                try{
+                    const suggestionOnLocations = await getDataFromMapboxAPI(value);
+                    if(suggestionOnLocations['features'].length == 0){
+            
+                        const response = JSON.stringify({status : 'failed','message': 'Location can not be found'})
+                        res.writeHead(404,{'Content-Type':'application/json'})
+                        res.end(response);
+                    }
+                    else{
+                        const lookupLocation = suggestionOnLocations['features'][0];
+                        const lat = lookupLocation['geometry']['coordinates'][1];
+                        const long = lookupLocation['geometry']['coordinates'][0];
+                        const currentWeatherConditions = await getDataFromWeatherAPI(lat,long);
+                        const temporalCoordinates = await getDataFromTimeAPI(lat,long)
+                        const date = temporalCoordinates['date'];
+                        const solarPosition = await getDataFromSunAPI(lat,long,date)
+                        
+                        res.writeHead(200,{'Content-Type':'application/json'});
+                        const response = JSON.stringify({status:'success',
+                                    'content':
+                                                {
+                                                'latitude':lookupLocation['geometry']['coordinates'][1],
+                                                'longitude':lookupLocation['geometry']['coordinates'][0],
+                                                'temperatureCelsius':currentWeatherConditions['current']['temp_c'],
+                                                'windKph':currentWeatherConditions['current']['wind_kph'],
+                                                'date':temporalCoordinates['date'],
+                                                'time':temporalCoordinates['time_24'],
+                                                'dayLength':solarPosition['results']['day_length'],
+                                            },
+                                    'message':'Data retrieved successfully for the given location'});
+                        res.end(response);
+                    }
+            
+                }
+                catch(err){
+                    console.log(err);
+                    const response = JSON.stringify({status : 'failed','message': 'Something went wrong'})
+                    res.writeHead(500,{'Content-Type':'application/json'})
+                    res.end(response);
+                }
+            }else{
+                res.writeHead(404,{'Content-Type':'application/json'})
+                res.end(JSON.stringify({status:"failed",message:"Location with the specified id not found in the specified category"}));
+            }
+        }else{
+            res.writeHead(404,{'Content-Type':'application/json'})
+            res.end(JSON.stringify({status:"failed",message:"Category not found"}));
+        }
+    }else{
+        res.writeHead(404,{'Content-Type':'application/json'})
+        res.end(JSON.stringify({status:"failed",message:"User not found"}));
+    }
 }
 
 
 module.exports = {
-    searchForLocation,
     getMetricsForApp,
     getAPIServicesStatus,
     registerNewUser,
@@ -522,5 +552,6 @@ module.exports = {
     getCategories,
     deleteCategory,
     addLocationToCtg,
-    deleteLocationFromCtg
+    deleteLocationFromCtg,
+    getDataForLoc
 }

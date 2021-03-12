@@ -163,12 +163,6 @@ module.exports = http.createServer((req,res)=>{
 
         })
     }   
-    else if(requestUrl.pathname == '/api' && req.method == 'POST'){
-        checkMIMEType(req,res,'application/json',()=>{
-            service.searchForLocation(req,res);
-        })
-        
-    }
     else if(requestUrl.pathname == '/monitor' && req.method == 'GET'){
         checkMIMEType(req,res,'application/json',()=>{
             service.getAPIServicesStatus(res);
@@ -253,6 +247,14 @@ module.exports = http.createServer((req,res)=>{
         locId = requestUrl.pathname.split('/')[5];
         verifyJWT(req,res,async (payload)=>{
             service.deleteLocationFromCtg(res,payload['id'],ctgName,locId)
+        });
+    }
+    else if(mm.isMatch(requestUrl.pathname,'/api/categories/*/locations/*') && req.method == "GET")
+    {
+        ctgName = requestUrl.pathname.split('/')[3];
+        locId = requestUrl.pathname.split('/')[5];
+        verifyJWT(req,res,async (payload)=>{
+            service.getDataForLoc(res,payload['id'],ctgName,locId)
         });
     }
     else
