@@ -28,15 +28,14 @@ API :
     | -->POST:register data
    -> endpoint: api/locations?suggestion='Par'
     -->GET: get a list of locations for the keyword
-   -> endpoint: api/locations/{category}
-    -->GET: get a bunch of data for the specified location,it must be an know location
-            even though you might get a result but you might want to use the specified
-            endpoint for getting a suggestion for a keyword.
-    -->PUT: create a new category for the specified locations database
-    -->DELETE: delete a category 
-    -> endpoint:api/locations/{category}/location/{id}
-      -->POST: Add location to the respective category and top
+   -> endpoint: api/categories/{category}
+      -->GET: gets the categorie data
+      -->PUT: create a new category for the specified locations database
+      -->DELETE: delete a category 
+    -> endpoint:api/categories/{category}/locations/{id}
+      -->PUT: Add location to the respective category and top
       -->GET: Get data about the certain location in the category
+      -->DELETE:Delete the location at the specified id
 
 
 

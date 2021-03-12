@@ -3,6 +3,7 @@ const fs = require('fs');
 const logger  = require('./logger.js');
 const service = require('./service.js');
 const jwt = require('jsonwebtoken');
+const mm = require('micromatch');
 
 const checkMIMEType = async function(req,res,type,callback){
     const contentType = req.headers['content-type'];
@@ -207,9 +208,15 @@ module.exports = http.createServer((req,res)=>{
             });
         });
     }
-    else if(requestUrl.pathname == "/api/locations/:id" && req.method == 'GET')
+    else if(mm.isMatch(requestUrl.pathname,'/api/locations/*') && req.method == "PUT")
     {
-        
+        ctgName = requestUrl.pathname.split('/')[3];
+    
+        verifyJWT(req,res,async (payload)=>{
+            checkMIMEType(req,res,'application/json',async ()=>{
+                service.createCategory(req,res,payload['id'],ctgName)
+            });
+        });
     }
     else
     {

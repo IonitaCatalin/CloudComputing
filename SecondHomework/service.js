@@ -75,7 +75,7 @@ const searchForLocation = function(req,res){
                                       'time':temporalCoordinates['time_24'],
                                       'dayLength':solarPosition['results']['day_length'],
                                     },
-                            'message':'Data retrieved succesfully for the given location'});
+                            'message':'Data retrieved successfully for the given location'});
                 res.body = response;
                 res.write(response);
                 res.end();
@@ -221,11 +221,11 @@ const registerNewUser = async function(req,res){
                     username:bodyJSON['username'],
                     email:bodyJSON['email'],
                     password:bodyJSON['password'],
-                    preferences:[]
+                    categories:[]
                 })
-                const createUser = await User.create(user);
+                const createdUser = await User.create(user);
                 res.writeHead(201,{'Content-Type':'application/json'})
-                res.end(JSON.stringify({status:"failed",message:"User created succesfully"}));
+                res.end(JSON.stringify({status:"success",message:"User created successfully"}));
 
             }catch(err){
                 console.log('Eroare')
@@ -265,7 +265,7 @@ const logInUser = async function(req,res){
                 res.end(JSON.stringify({status:"failed",message:"Internal problems generating tokens"}));
             }
             res.writeHead(500,{'Content-Type':'application/json'})
-            res.end(JSON.stringify({status:"success",content:{token:clientToken},message:"Logged in succesfully"}));
+            res.end(JSON.stringify({status:"success",content:{token:clientToken},message:"Logged in successfully"}));
         }
         else{
             res.writeHead(404,{'Content-Type':'application/json'})
@@ -276,20 +276,22 @@ const logInUser = async function(req,res){
 }
 
 const fetchUserProfile = async function(res,id){
-    const loggedUser = await User.find({uuid:id});
+    const loggedUser = await User.find({uuid:id}).populate('category');
     const user = loggedUser[0];
     if(loggedUser.length === 0){
         res.writeHead(404,{'Content-Type':'application/json'})
         res.end(JSON.stringify({status:"failed",message:"User not found"}));
     }else{
         res.writeHead(200,{'Content-Type':'application/json'})
+        console.log(user);
         res.end(JSON.stringify({status:"success",content:
             {
                 username:user['username'],
                 email:user['email'],
-                password:user['password']
+                password:user['password'],
+                categories:user['categories']
             },
-        message:"User found succesfully"}));
+        message:"User found successfully"}));
     }
 }
 const deleteUserProfile = async function(res,id){
@@ -301,7 +303,7 @@ const deleteUserProfile = async function(res,id){
         try{
             const deletedUser = await User.deleteOne({uuid:id});
             res.writeHead(202,{'Content-Type':'application/json'})
-            res.end(JSON.stringify({status:"failed",message:"User deleted succesfully"}));
+            res.end(JSON.stringify({status:"failed",message:"User deleted successfully"}));
 
         }catch(err){
             res.writeHead(500,{'Content-Type':'application/json'})
@@ -379,18 +381,19 @@ const updateUserProfile = async function(req,res,id){
                            'password':newPass 
                         }})
                     res.writeHead(200,{'Content-Type':'application/json'})
-                    res.end(JSON.stringify({status:"failed",message:"User data modified succesfully"}));
+                    res.end(JSON.stringify({status:"failed",message:"User data modified successfully"}));
                 }catch(err){
                     res.writeHead(500,{'Content-Type':'application/json'})
                     res.end(JSON.stringify({status:"failed",message:"Nothing to modify"}));
                 }
-
             }
-
         }
-
     });
 }
+
+const createCategory = function(req,res,id,name){
+    
+}   
 
 
 
@@ -402,5 +405,6 @@ module.exports = {
     logInUser,
     fetchUserProfile,
     deleteUserProfile,
-    updateUserProfile
+    updateUserProfile,
+    createCategory
 }
