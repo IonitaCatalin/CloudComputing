@@ -12,7 +12,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"username\":\"gigibarca\",\r\n    \"email\":\"ceva@gmai2l2.com\",\r\n    \"password\":\"1235\"\r\n}",
+					"raw": "{\r\n    \"username\":\"gigibarca2\",\r\n    \"email\":\"ceva@gmai2l22.com\",\r\n    \"password\":\"1235\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -44,7 +44,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFiNjI2YWRmLTk2MzItNDUzYi04N2RmLWIzNDQ2ZTc2YzIxYyIsImlhdCI6MTYxNTQ5MDkzNCwiZXhwIjoxNjE1NTc3MzM0fQ.MxMy3KHqn-e8kpNTRwkAM_876nh99W1-kY_d9Vz6ZZs",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjhlNjExMzY4LTU0ZmYtNDM5OC04Yzg2LWQ4OWJhYTU2Njk5NiIsImlhdCI6MTYxNTUzODQ5NiwiZXhwIjoxNjE1NjI0ODk2fQ.ErBV_aMWzXnqyxGonIjVVX5p1aFHlN4ew08RwWVAJzA",
 							"type": "string"
 						}
 					]
@@ -110,7 +110,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"username\":\"gigibarca\",\r\n    \"password\":\"1235\"\r\n}",
+					"raw": "{\r\n    \"username\":\"gigibarca2\",\r\n    \"password\":\"1235\"\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -215,7 +215,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "res.writeHead(400,{'Content-Type':'application/json'})\n            res.end(JSON.stringify({status:\"failed\",message:\"Malformed JSON's body\"}));",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImU2N2VkMjM2LTZjOWQtNDkzYi04NDE0LTdiODE1OWIyNWM1MiIsImlhdCI6MTYxNTU0NDcwNCwiZXhwIjoxNjE1NjMxMTA0fQ.-eaWAK2WIg89rz2OF5Fv6QoF81qqmFIapLxn8bs4Pts",
 							"type": "string"
 						}
 					]
@@ -239,6 +239,16 @@
 		{
 			"name": "Delete category",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImU2N2VkMjM2LTZjOWQtNDkzYi04NDE0LTdiODE1OWIyNWM1MiIsImlhdCI6MTYxNTU0NjMxOSwiZXhwIjoxNjE1NjMyNzE5fQ.TMHZvqyJjR-5YiKZg0C4OhAqOXOP8q295Ojk-LytZNk",
+							"type": "string"
+						}
+					]
+				},
 				"method": "DELETE",
 				"header": [],
 				"url": {
@@ -259,9 +269,104 @@
 		{
 			"name": "Add location to category",
 			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNjZDdhODEzLWI1YzYtNDQ5NS05YzQ1LTRjMzY1MjNiYTI4OCIsImlhdCI6MTYxNTU1NjcxNywiZXhwIjoxNjE1NjQzMTE3fQ.zlYaFhEeAP2uMjkwVGc2x1vDhyR6joBxCD4ePvvHOGk",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"location\":\"Paris\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:3000/api/categories/locatiiInteresante/locations",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"categories",
+						"locatiiInteresante",
+						"locations"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete location from category",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFhMTZiZjQxLTZiZjQtNDdkMS1hYzQyLTJkMjBhOWE2MmI2ZCIsImlhdCI6MTYxNTU1MzgxMSwiZXhwIjoxNjE1NjQwMjExfQ.v2fIw52CVzGAHXSld82SwemBTrX1m04KTyTtKNYed90",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/api/categories/locatiiInteresante/locations/2",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"categories",
+						"locatiiInteresante",
+						"locations",
+						"2"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get data from location in category",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFhMTZiZjQxLTZiZjQtNDdkMS1hYzQyLTJkMjBhOWE2MmI2ZCIsImlhdCI6MTYxNTU1NjU2NiwiZXhwIjoxNjE1NjQyOTY2fQ.QbKzgIDdZWJOI_X2-fL93Vuur9iUC6IFaPVqzATkpBI",
+							"type": "string"
+						}
+					]
+				},
 				"method": "GET",
 				"header": [],
-				"url": null
+				"url": {
+					"raw": "localhost:3000/api/categories/locatiiInteresante/locations/1",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"api",
+						"categories",
+						"locatiiInteresante",
+						"locations",
+						"1"
+					]
+				}
 			},
 			"response": []
 		}
