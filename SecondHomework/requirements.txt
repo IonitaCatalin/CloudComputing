@@ -34,9 +34,9 @@ API :
       | -->DELETE: delete a category by its name
         -->PATCH: change category name
     -> endpoint:api/categories/{category}/locations/{id}
-      -->PUT: Add location to the respective category
+      | -->PUT: Add location to the respective category
       -->GET: Get data about the certain location in the category
-      -->DELETE: Delete the location at the specified id
+      |-->DELETE: Delete the location at the specified id from the category
 
 
 

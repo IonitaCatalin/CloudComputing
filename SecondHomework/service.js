@@ -466,6 +466,48 @@ const deleteCategory = async function(res,id,name){
     }
 }
 
+const addLocationToCtg = function(req,res,id,ctg){
+    let requestBody = '';
+    req.on('data', chunk => {
+        requestBody += chunk.toString(); 
+    });
+    req.on('end',async ()=>{
+        try{
+            bodyJSON = JSON.parse(requestBody);
+        }catch(err){
+            res.writeHead(400,{'Content-Type':'application/json'})
+            res.end(JSON.stringify({status:"failed",message:"Malformed JSON's body"}));
+        }
+        const existsUser = await User.exists({uuid:id});
+        if(existsUser){
+            const existsCategory = await User.exists({uuid:id,'categories.name':ctg});
+            console.log(existsCategory);
+            if(existsCategory){
+                try{
+                    await User.findOneAndUpdate({uuid:id,'categories.name':ctg},{$push:{"categories.$.locations": bodyJSON['location']}})
+                    res.writeHead(200,{'Content-Type':'application/json'})
+                    res.end(JSON.stringify({status:"success",message:"Location added to category successfully"}));
+                }catch(err){
+                    console.log(err);
+                    res.writeHead(500,{'Content-Type':'application/json'})
+                    res.end(JSON.stringify({status:"failed",message:"Something went wrong"}));
+                }
+            }
+            else{
+                res.writeHead(404,{'Content-Type':'application/json'})
+                res.end(JSON.stringify({status:"failed",message:"Category not found"}));
+            }
+        }else{
+            res.writeHead(404,{'Content-Type':'application/json'})
+            res.end(JSON.stringify({status:"failed",message:"User not found"}));
+        }
+    });
+}
+
+const deleteLocationFromCtg = async function(res,id,ctg,locId){
+
+}
+
 
 module.exports = {
     searchForLocation,
@@ -478,5 +520,7 @@ module.exports = {
     updateUserProfile,
     createCategory,
     getCategories,
-    deleteCategory
+    deleteCategory,
+    addLocationToCtg,
+    deleteLocationFromCtg
 }

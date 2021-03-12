@@ -238,6 +238,23 @@ module.exports = http.createServer((req,res)=>{
             service.deleteCategory(res,payload['id'],ctgName)
         });
     }
+    else if(mm.isMatch(requestUrl.pathname,'/api/categories/*/locations') && req.method == "PUT")
+    {
+        ctgName = requestUrl.pathname.split('/')[3];
+        verifyJWT(req,res,async (payload)=>{
+            checkMIMEType(req,res,'application/json',async ()=>{
+                service.addLocationToCtg(req,res,payload['id'],ctgName)
+            });
+        });
+    }
+    else if(mm.isMatch(requestUrl.pathname,'/api/categories/*/locations/*') && req.method == "DELETE")
+    {
+        ctgName = requestUrl.pathname.split('/')[3];
+        locId = requestUrl.pathname.split('/')[5];
+        verifyJWT(req,res,async (payload)=>{
+            service.deleteLocationFromCtg(res,payload['id'],ctgName,locId)
+        });
+    }
     else
     {
         res.writeHead(404,{'Content-Type':'application/json'})
