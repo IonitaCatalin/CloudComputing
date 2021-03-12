@@ -56,7 +56,7 @@ module.exports = http.createServer((req,res)=>{
 
         })
     }
-    if(requestUrl.pathname == '/client/login' && req.method == 'GET') {
+    else if(requestUrl.pathname == '/client/login' && req.method == 'GET') {
         fs.readFile('./client/login.html',function(err,html){
             if(err){
                 res.writeHead(404, { 'Content-Type': 'text/html' });
@@ -72,7 +72,7 @@ module.exports = http.createServer((req,res)=>{
         })
     }
 
-    if(requestUrl.pathname == '/client/register' && req.method == 'GET') {
+    else if(requestUrl.pathname == '/client/register' && req.method == 'GET') {
         fs.readFile('./client/register.html',function(err,html){
             if(err){
                 res.writeHead(404, { 'Content-Type': 'text/html' });
@@ -88,7 +88,7 @@ module.exports = http.createServer((req,res)=>{
         })
     }
 
-    if(requestUrl.pathname == '/client/css/register.css' && req.method == 'GET'){
+    else if(requestUrl.pathname == '/client/css/register.css' && req.method == 'GET'){
         fs.readFile('./client/css/register.css',function(err,css){
             if(err){
                 res.writeHead(404, { 'Content-Type': 'text/css' });
@@ -104,7 +104,7 @@ module.exports = http.createServer((req,res)=>{
     }   
     
 
-    if(requestUrl.pathname == '/client/css/login.css' && req.method == 'GET'){
+    else if(requestUrl.pathname == '/client/css/login.css' && req.method == 'GET'){
         fs.readFile('./client/css/login.css',function(err,css){
             if(err){
                 res.writeHead(404, { 'Content-Type': 'text/css' });
@@ -119,7 +119,7 @@ module.exports = http.createServer((req,res)=>{
         })
     }   
     
-    if(requestUrl.pathname == '/css/style.css' && req.method == 'GET'){
+    else if(requestUrl.pathname == '/css/style.css' && req.method == 'GET'){
         fs.readFile('./client/css/style.css',function(err,css){
             if(err){
                 res.writeHead(404, { 'Content-Type': 'text/css' });
@@ -134,7 +134,7 @@ module.exports = http.createServer((req,res)=>{
         })
     }   
 
-    if(requestUrl.pathname == '/js/submit.js' && req.method == 'GET'){
+    else if(requestUrl.pathname == '/js/submit.js' && req.method == 'GET'){
         fs.readFile('./client/js/submit.js',function(err,js){
             if(err){
                 res.writeHead(404, { 'Content-Type': 'text/javascript' });
@@ -148,7 +148,7 @@ module.exports = http.createServer((req,res)=>{
 
         })
     }
-    if(requestUrl.pathname == '/js/worker.js' && req.method == 'GET'){
+    else if(requestUrl.pathname == '/js/worker.js' && req.method == 'GET'){
         fs.readFile('./client/js/worker.js',function(err,js){
             if(err){
                 res.writeHead(404, { 'Content-Type': 'text/javascript' });
@@ -162,43 +162,59 @@ module.exports = http.createServer((req,res)=>{
 
         })
     }   
-    if(requestUrl.pathname == '/api' && req.method == 'POST'){
+    else if(requestUrl.pathname == '/api' && req.method == 'POST'){
         checkMIMEType(req,res,'application/json',()=>{
             service.searchForLocation(req,res);
         })
         
     }
-    if(requestUrl.pathname == '/monitor' && req.method == 'GET'){
+    else if(requestUrl.pathname == '/monitor' && req.method == 'GET'){
         checkMIMEType(req,res,'application/json',()=>{
             service.getAPIServicesStatus(res);
         })
         
     }
-    if(requestUrl.pathname == '/metrics' && req.method == 'GET'){
+    else if(requestUrl.pathname == '/metrics' && req.method == 'GET'){
         checkMIMEType(req,res,'application/json',()=>{
             service.getMetricsForApp(req,res);
         })
         
     }
-    if(requestUrl.pathname == '/api/register' && req.method == 'POST'){
+    else if(requestUrl.pathname == '/api/register' && req.method == 'POST'){
         checkMIMEType(req,res,'application/json',async ()=>{
             service.registerNewUser(req,res);
         })
     }
-    if(requestUrl.pathname == '/api/login' && req.method == 'POST'){
+    else if(requestUrl.pathname == '/api/login' && req.method == 'POST'){
         checkMIMEType(req,res,'application/json',async ()=>{
             service.logInUser(req,res);
         })
     }
-    if(requestUrl.pathname == '/api/users' && req.method == 'GET'){
+    else if(requestUrl.pathname == '/api/users' && req.method == 'GET'){
         verifyJWT(req,res,async (payload)=>{
             service.fetchUserProfile(res,payload['id']);
         })
     }
-    if(requestUrl.pathname == '/api/users' && req.method == 'DELETE'){
+    else if(requestUrl.pathname == '/api/users' && req.method == 'DELETE'){
         verifyJWT(req,res,async (payload)=>{
             service.deleteUserProfile(res,payload['id']);
         })
+    }
+    else if(requestUrl.pathname == '/api/users' && req.method == 'PATCH'){
+        verifyJWT(req,res,async (payload)=>{
+            checkMIMEType(req,res,'application/json',async ()=>{
+                service.updateUserProfile(req,res,payload['id']);
+            });
+        });
+    }
+    else if(requestUrl.pathname == "/api/locations/:id" && req.method == 'GET')
+    {
+        
+    }
+    else
+    {
+        res.writeHead(404,{'Content-Type':'application/json'})
+        res.end(JSON.stringify({status:"failed",message:"Unknown route"}));
     }
 
 })

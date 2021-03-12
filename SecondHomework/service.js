@@ -271,7 +271,6 @@ const logInUser = async function(req,res){
             res.writeHead(404,{'Content-Type':'application/json'})
             res.end(JSON.stringify({status:"failed",message:"User not found"}));
         }
-
     })
 
 }
@@ -287,7 +286,8 @@ const fetchUserProfile = async function(res,id){
         res.end(JSON.stringify({status:"success",content:
             {
                 username:user['username'],
-                email:user['email']
+                email:user['email'],
+                password:user['password']
             },
         message:"User found succesfully"}));
     }
@@ -311,8 +311,87 @@ const deleteUserProfile = async function(res,id){
 }
 
 const updateUserProfile = async function(req,res,id){
+    let requestBody = '';
+    req.on('data', chunk => {
+        requestBody += chunk.toString(); 
+    });
+    req.on('end',async ()=>{
+        try{
+            bodyJSON = JSON.parse(requestBody);
+        }catch(err){
+            res.writeHead(400,{'Content-Type':'application/json'})
+            res.end(JSON.stringify({status:"failed",message:"Malformed JSON's body"}));
+        }
+        let newUsr = '';
+        let newEmail = '';
+        let newPass = '';
 
+        const users = await User.find({uuid:id});
+        if(users.length == 0){
+            res.writeHead(404,{'Content-Type':'application/json'})
+            res.end(JSON.stringify({status:"failed",message:"User not found"}));
+        }else{
+            const user = users[0];
+            if(bodyJSON['username'] === undefined && bodyJSON['password'] === undefined && bodyJSON['email'] === undefined){
+                res.writeHead(400,{'Content-Type':'application/json'})
+                res.end(JSON.stringify({status:"failed",message:"Nothing to modify"}));
+            }else{
+                if(bodyJSON['username'] !== undefined){
+                    const existsUsername = await User.exists({username:bodyJSON['username']})
+                    if(!existsUsername){
+                        newUsr = bodyJSON['username'];
+                    }
+                    else{
+                        res.writeHead(409,{'Content-Type':'application/json'})
+                        res.end(JSON.stringify({status:"failed",message:"Username is already taken"}));
+                    }
+                }
+                else{
+                    newUsr = user['username']
+                }
+
+                if(bodyJSON['email'] !== undefined){
+                    const existsEmail = await User.exists({email:bodyJSON['email']})
+                    if(!existsEmail){
+                        newEmail = bodyJSON['email'];
+                    }
+                    else{
+                        res.writeHead(409,{'Content-Type':'application/json'})
+                        res.end(JSON.stringify({status:"failed",message:"Email is already taken"}));
+                    }
+                }
+                else{
+                    newEmail = user['email']
+                }
+
+                if(bodyJSON['password'] !== undefined){
+                    newPass = bodyJSON['password'];
+                }
+                else{
+                    newPass = user['password']
+                }
+                
+                try{
+                    const modifiedUser = await User.updateOne({uuid:id},
+                        {$set:{
+                           'username':newUsr,
+                           'email':newEmail,
+                           'password':newPass 
+                        }})
+                    res.writeHead(200,{'Content-Type':'application/json'})
+                    res.end(JSON.stringify({status:"failed",message:"User data modified succesfully"}));
+                }catch(err){
+                    res.writeHead(500,{'Content-Type':'application/json'})
+                    res.end(JSON.stringify({status:"failed",message:"Nothing to modify"}));
+                }
+
+            }
+
+        }
+
+    });
 }
+
 
 
 module.exports = {

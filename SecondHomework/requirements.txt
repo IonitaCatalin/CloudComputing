@@ -23,28 +23,20 @@ API :
     | -->PATCH: change data about a users profile
     | -->DELETE: delete the entire user profile
   |-> endpoint: api/login
-    -->POST:login data  
+    | -->POST:login data  
   |-> endpoint: api/register
-    -->POST:register data
+    | -->POST:register data
    -> endpoint: api/locations?suggestion='Par'
     -->GET: get a list of locations for the keyword
-   -> endpoint: api/locations/location_name
+   -> endpoint: api/locations/{category}
     -->GET: get a bunch of data for the specified location,it must be an know location
             even though you might get a result but you might want to use the specified
             endpoint for getting a suggestion for a keyword.
-   -> endpoint: api/locations/preferences
-    -->GET: get a list of user prefered locations
-    -->DELETE: delete the user prefered locations
-    -->PATCH: update one of the user prefered locations
-    -->POST: add a specified location to the list of prefferences in the back
-
-   -> endpoint: api/locations/preferences/{id}
-    -->GET: get the location which is on spot {id}
-    -->PUT: replace entirely the location which is on spot {id}
-   ->endpoint: api/admin
-    -!> Only a user having a special token might user the functionalities described here
-    --!>All the previous functionalities for benchmarking the api
-
+    -->PUT: create a new category for the specified locations database
+    -->DELETE: delete a category 
+    -> endpoint:api/locations/{category}/location/{id}
+      -->POST: Add location to the respective category and top
+      -->GET: Get data about the certain location in the category
 
 
 
