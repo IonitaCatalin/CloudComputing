@@ -1,5 +1,5 @@
 const axios = require('axios');
-const {Log,Response,User} = require('./models')
+const {Log,Response,User,Category} = require('./models')
 const { v4: uuidv4 } = require('uuid');
 const jwt = require('jsonwebtoken');
 require('dotenv').config()
@@ -221,14 +221,15 @@ const registerNewUser = async function(req,res){
                     username:bodyJSON['username'],
                     email:bodyJSON['email'],
                     password:bodyJSON['password'],
-                    categories:[]
+                    categories:[{name:"Default",locations:[]}]
                 })
                 const createdUser = await User.create(user);
+                
                 res.writeHead(201,{'Content-Type':'application/json'})
                 res.end(JSON.stringify({status:"success",message:"User created successfully"}));
 
             }catch(err){
-                console.log('Eroare')
+                console.log(err)
                 res.writeHead(500,{'Content-Type':'application/json'})
                 res.end(JSON.stringify({status:"failed",message:"Something went wrong"}));
             }
@@ -381,7 +382,7 @@ const updateUserProfile = async function(req,res,id){
                            'password':newPass 
                         }})
                     res.writeHead(200,{'Content-Type':'application/json'})
-                    res.end(JSON.stringify({status:"failed",message:"User data modified successfully"}));
+                    res.end(JSON.stringify({status:"success",message:"User data modified successfully"}));
                 }catch(err){
                     res.writeHead(500,{'Content-Type':'application/json'})
                     res.end(JSON.stringify({status:"failed",message:"Nothing to modify"}));
@@ -391,10 +392,79 @@ const updateUserProfile = async function(req,res,id){
     });
 }
 
-const createCategory = function(req,res,id,name){
-    
+const createCategory = function(req,res,id){
+    let requestBody = '';
+    req.on('data', chunk => {
+        requestBody += chunk.toString(); 
+    });
+    req.on('end',async ()=>{
+        try{
+            bodyJSON = JSON.parse(requestBody);
+        }catch(err){
+            res.writeHead(400,{'Content-Type':'application/json'})
+            res.end(JSON.stringify({status:"failed",message:"Malformed JSON's body"}));
+        }
+        if(bodyJSON['name'] !== undefined){
+            const existsUser = await User.exists({uuid:id})
+            if(existsUser){
+                const itsCategories = await User.findOne({uuid:id},{categories:1});
+                if(!itsCategories['categories'].find(element => element['name'] == bodyJSON['name'])){
+                    try{
+                        const newLoc = {locations:[],name:bodyJSON['name']};
+                        await User.findOneAndUpdate({uuid:id},{$push:{categories:newLoc}})
+                    }
+                    catch(err){
+                        res.writeHead(500,{'Content-Type':'application/json'})
+                        res.end(JSON.stringify({status:"failed",message:"Something went wrong"}));
+                    }
+                    res.writeHead(201,{'Content-Type':'application/json'})
+                    res.end(JSON.stringify({status:"success",message:"Category added successfully"}));
+                }else{
+                    res.writeHead(409,{'Content-Type':'application/json'})
+                    res.end(JSON.stringify({status:"failed",message:"Category name already taken"}));
+                }
+            }else{
+                res.writeHead(404,{'Content-Type':'application/json'})
+                res.end(JSON.stringify({status:"failed",message:"User not found"}));
+            }
+        }else{
+            res.writeHead(200,{'Content-Type':'application/json'})
+            res.end(JSON.stringify({status:"failed",message:"Name parameter is required"}));
+        }
+    });
 }   
 
+const getCategories = async function(res,id){
+    const user = await User.findOne({uuid:id});
+    if(user !== undefined){
+        res.writeHead(200,{'Content-Type':'application/json'})
+
+        res.end(JSON.stringify({status:"success",content:{
+            categories:user['categories']
+        },message:"Categories retrieved successfully"}));
+    }else{
+        res.writeHead(404,{'Content-Type':'application/json'})
+        res.end(JSON.stringify({status:"failed",message:"User not found"}));
+    }
+}
+
+const deleteCategory = async function(res,id,name){
+    const existsUser = await User.exists({uuid:id});
+    if(existsUser){
+        try{
+            //await User.findOneAndUpdate({uuid:id},{$push:{categories:newLoc}})
+            await User.findOneAndUpdate({uuid:id},{$pull:{categories:{name:name}}})
+            res.writeHead(202,{'Content-Type':'application/json'})
+            res.end(JSON.stringify({status:"success",message:"Category deleted successfully"}));
+        }catch(err){
+            res.writeHead(500,{'Content-Type':'application/json'})
+            res.end(JSON.stringify({status:"failed",message:"Something went wrong"}));
+        }
+    }else{
+        res.writeHead(404,{'Content-Type':'application/json'})
+        res.end(JSON.stringify({status:"failed",message:"User not found"}));
+    }
+}
 
 
 module.exports = {
@@ -406,5 +476,7 @@ module.exports = {
     fetchUserProfile,
     deleteUserProfile,
     updateUserProfile,
-    createCategory
+    createCategory,
+    getCategories,
+    deleteCategory
 }

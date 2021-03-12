@@ -29,13 +29,14 @@ API :
    -> endpoint: api/locations?suggestion='Par'
     -->GET: get a list of locations for the keyword
    -> endpoint: api/categories/{category}
-      -->GET: gets the categorie data
-      -->PUT: create a new category for the specified locations database
-      -->DELETE: delete a category 
+      | -->GET: gets the categorie data
+      | -->POST: create a new category for the specified locations database
+      | -->DELETE: delete a category by its name
+        -->PATCH: change category name
     -> endpoint:api/categories/{category}/locations/{id}
-      -->PUT: Add location to the respective category and top
+      -->PUT: Add location to the respective category
       -->GET: Get data about the certain location in the category
-      -->DELETE:Delete the location at the specified id
+      -->DELETE: Delete the location at the specified id
 
 
 

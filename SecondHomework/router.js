@@ -201,21 +201,41 @@ module.exports = http.createServer((req,res)=>{
             service.deleteUserProfile(res,payload['id']);
         })
     }
-    else if(requestUrl.pathname == '/api/users' && req.method == 'PATCH'){
+    else if(requestUrl.pathname === '/api/users' && req.method == 'PATCH'){
         verifyJWT(req,res,async (payload)=>{
             checkMIMEType(req,res,'application/json',async ()=>{
                 service.updateUserProfile(req,res,payload['id']);
             });
         });
     }
-    else if(mm.isMatch(requestUrl.pathname,'/api/locations/*') && req.method == "PUT")
+    else if(mm.isMatch(requestUrl.pathname,'/api/categories') && req.method == "POST")
     {
         ctgName = requestUrl.pathname.split('/')[3];
-    
         verifyJWT(req,res,async (payload)=>{
             checkMIMEType(req,res,'application/json',async ()=>{
                 service.createCategory(req,res,payload['id'],ctgName)
             });
+        });
+    }
+    else if(requestUrl.pathname === '/api/categories' && req.method == "POST")
+    {
+        verifyJWT(req,res,async (payload)=>{
+            checkMIMEType(req,res,'application/json',async ()=>{
+                service.createCategory(req,res,payload['id'])
+            });
+        });
+    }
+    else if(requestUrl.pathname === '/api/categories' && req.method == "GET")
+    {
+        verifyJWT(req,res,async (payload)=>{
+            service.getCategories(res,payload['id'])
+        });
+    }
+    else if(mm.isMatch(requestUrl.pathname,'/api/categories/*') && req.method == "DELETE")
+    {
+        ctgName = requestUrl.pathname.split('/')[3];
+        verifyJWT(req,res,async (payload)=>{
+            service.deleteCategory(res,payload['id'],ctgName)
         });
     }
     else
